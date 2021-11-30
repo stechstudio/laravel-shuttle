@@ -14,4 +14,10 @@ class ShuttleServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasViews();
     }
+
+    public function registeringPackage(): void
+    {
+        // TODO: Does this need to be `scoped` to support Octane?
+        $this->app->singleton(ShuttleManager::class);
+    }
 }
