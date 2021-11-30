@@ -4,7 +4,6 @@ namespace STS\Shuttle;
 
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use STS\Shuttle\Commands\ShuttleCommand;
 
 class ShuttleServiceProvider extends PackageServiceProvider
 {
@@ -18,8 +17,6 @@ class ShuttleServiceProvider extends PackageServiceProvider
         $package
             ->name('laravel-shuttle')
             ->hasConfigFile()
-            ->hasViews()
-            ->hasMigration('create_laravel-shuttle_table')
-            ->hasCommand(ShuttleCommand::class);
+            ->hasViews();
     }
 }
