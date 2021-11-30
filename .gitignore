@@ -11,4 +11,5 @@ phpstan.neon
 testbench.yaml
 vendor
 node_modules
+demo
 .php-cs-fixer.cache
