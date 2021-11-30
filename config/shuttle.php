@@ -1,5 +1,11 @@
 <?php
-// config for STS/Shuttle
+
 return [
+
+    'url_prefix' => '/uploader',
+
+    'disk' => 's3',
+
+    'guard' => 'web',
 
 ];
