@@ -2,7 +2,6 @@
 
 namespace STS\Shuttle;
 
-use STS\Shuttle\Upload;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
@@ -52,19 +51,19 @@ class ShuttleManager
     public function routes()
     {
         Route::name('uploader.')->prefix(config('shuttle.url_prefix') . '/s3/multipart')->group(function () {
-            Route::post('/', fn() => Upload::begin(request('metadata'), $this->owner(request('metadata'))))
+            Route::post('/', fn () => Upload::begin(request('metadata'), $this->owner(request('metadata'))))
                 ->name('create');
 
-            Route::get('/{uploadId}', fn() => Upload::parts(request('key'), request('uploadId')))
+            Route::get('/{uploadId}', fn () => Upload::parts(request('key'), request('uploadId')))
                 ->name('get-parts');
 
-            Route::get('/{uploadId}/{partNumber}', fn() => Upload::sign(request('key'), request('uploadId'), request('partNumber')))
+            Route::get('/{uploadId}/{partNumber}', fn () => Upload::sign(request('key'), request('uploadId'), request('partNumber')))
                 ->name('sign-part');
 
-            Route::delete('/{uploadId}', fn() => Upload::abort(request('key'), request('uploadId')))
+            Route::delete('/{uploadId}', fn () => Upload::abort(request('key'), request('uploadId')))
                 ->name('abort');
 
-            Route::post('/{uploadId}/complete', fn() => Upload::complete(request('key'), request('uploadId'), request('parts')))
+            Route::post('/{uploadId}/complete', fn () => Upload::complete(request('key'), request('uploadId'), request('parts')))
                 ->name('complete');
         });
     }

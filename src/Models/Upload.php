@@ -2,11 +2,11 @@
 
 namespace STS\Shuttle;
 
-use STS\Shuttle\Facades\Shuttle;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Str;
+use STS\Shuttle\Facades\Shuttle;
 
 class Upload extends Model
 {
@@ -30,7 +30,7 @@ class Upload extends Model
             'name' => $attributes['name'],
             'extension' => strtolower(pathinfo($attributes['name'], PATHINFO_EXTENSION)),
             'type' => $attributes['type'],
-            'size' => $attributes['size']
+            'size' => $attributes['size'],
         ]);
 
         $result = Shuttle::s3Client()->createMultipartUpload([
@@ -102,7 +102,7 @@ class Upload extends Model
             'MultipartUpload' => ['Parts' => $parts],
         ]);
 
-        tap(static::where('key', $key)->first(), function($upload) {
+        tap(static::where('key', $key)->first(), function ($upload) {
             $upload->update(['complete_at' => now()]);
             Shuttle::complete($upload);
         });
