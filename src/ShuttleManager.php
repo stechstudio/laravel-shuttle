@@ -2,27 +2,23 @@
 
 namespace STS\Shuttle;
 
+use Closure;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 class ShuttleManager
 {
-    /** @var callable */
-    protected $baseUrlResolver;
+    protected ?Closure $baseUrlResolver = null;
 
-    /** @var callable */
-    protected $ownerResolver;
+    protected ?Closure $ownerResolver = null;
 
-    /** @var callable */
-    protected $s3ClientResolver;
+    protected ?Closure $s3ClientResolver = null;
 
-    /** @var callable */
-    protected $s3BucketResolver;
+    protected ?Closure $s3BucketResolver = null;
 
-    /** @var callable */
-    protected $completeHandler;
+    protected ?Closure $completeHandler = null;
 
-    public function resolveBaseUrlWith($resolver)
+    public function resolveBaseUrlWith(Closure $resolver)
     {
         $this->baseUrlResolver = $resolver;
 
@@ -36,7 +32,7 @@ class ShuttleManager
             : config('shuttle.url_prefix');
     }
 
-    public function resolveOwnerWith($resolver)
+    public function resolveOwnerWith(Closure $resolver)
     {
         $this->ownerResolver = $resolver;
 
@@ -68,7 +64,7 @@ class ShuttleManager
         });
     }
 
-    public function resolveS3ClientWith($resolver)
+    public function resolveS3ClientWith(Closure $resolver)
     {
         $this->s3ClientResolver = $resolver;
 
@@ -82,7 +78,7 @@ class ShuttleManager
             : Storage::disk(config('shuttle.disk'))->getAdapter()->getClient();
     }
 
-    public function resolveS3BucketWith($resolver)
+    public function resolveS3BucketWith(Closure $resolver)
     {
         $this->s3BucketResolver = $resolver;
 
@@ -96,7 +92,7 @@ class ShuttleManager
             : config('filesystems.disks.' . config('shuttle.disk') . '.bucket');
     }
 
-    public function whenComplete($handler)
+    public function whenComplete(Closure $handler)
     {
         $this->completeHandler = $handler;
 
