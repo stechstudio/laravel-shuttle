@@ -7,7 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Str;
 use STS\Shuttle\Facades\Shuttle;
+use STS\Shuttle\Models\Contracts\InteractsWithUploads;
 
+/**
+ * @property int $id
+ * @property-read string $uuid
+ * @property string $key
+ * @property int $user_id
+ * @property string $owner_type
+ * @property int $owner_id
+ * @property string $name
+ * @property string $extension
+ * @property string $type
+ * @property int $size
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon|null $completed_at
+ */
 class Upload extends Model
 {
     use HasFactory;
@@ -19,7 +35,7 @@ class Upload extends Model
         return $this->morphTo();
     }
 
-    public static function begin(array $attributes, Model $uploadable): array
+    public static function begin(array $attributes, Model & InteractsWithUploads $uploadable): array
     {
         $uuid = Str::uuid();
 
@@ -103,7 +119,7 @@ class Upload extends Model
         ]);
 
         tap(static::where('key', $key)->first(), function ($upload) {
-            $upload->update(['complete_at' => now()]);
+            $upload->update(['completed_at' => now()]);
             Shuttle::complete($upload);
         });
 

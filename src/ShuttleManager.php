@@ -79,9 +79,12 @@ class ShuttleManager
 
     public function s3Client()
     {
-        return $this->s3ClientResolver
-            ? call_user_func($this->s3ClientResolver)
-            : Storage::disk(config('shuttle.disk'))->getAdapter()->getClient();
+        if ($this->s3ClientResolver) {
+            return value($this->s3ClientResolver);
+        }
+
+        /** @phpstan-ignore-next-line */
+        return Storage::disk(config('shuttle.disk'))->getAdapter()->getClient();
     }
 
     public function resolveS3BucketWith(Closure $resolver)
