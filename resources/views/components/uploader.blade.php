@@ -10,11 +10,53 @@
 
 <div x-title="shuttle"
     x-data="Shuttle({
-        uploadContext: @entangle('uploadContext'),
-        dropTarget: {{ json_encode($dropTarget) }},
-        baseUrl: {{ json_encode(Shuttle::baseUrl()) }},
-        ...{{ $config }},
+        baseUrl: '{{ Shuttle::baseUrl() }}',
+        uploadContext: {},
+        dropTarget: '{{ $dropTarget }}',
     })"
+    x-init="() => {
+        window.addEventListener('beforeunload', unload);
+
+        uppy = new Uppy({
+            autoProceed: true,
+            allowMultipleUploads: true,
+            debug: true,
+            onBeforeFileAdded: (file) => {
+                file.meta = Object.assign(file.meta, context);
+                file.meta.size = file.data.size;
+            }
+        }).use(UppyDropTarget, {
+            target: document.querySelector(config.dropTarget)
+        }).use(AwsS3Multipart, {
+            limit: 300,
+            companionUrl: config.baseUrl,
+        }).on('file-added', (file) => {
+            setState('UPLOADING');
+            files[file.id] = { id: file.id, name : file.name, size: file.size, progress: 0, status: 'uploading' };
+        }).on('upload-progress', (file, progress) => {
+            files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
+        }).on('progress', (progress) => {
+            percent = progress;
+        }).on('upload-success', (file, response) => {
+            filesUploaded++;
+            files[file.id].status = 'complete';
+
+            setTimeout(() => {
+                delete files[file.id];
+                @this.render();
+            }, 500);
+        }).on('upload-error', (file, error, response) => {
+            files[file.id].status = 'error';
+        }).on('file-removed', (file, reason) => {
+            delete files[file.id];
+        }).on('complete', (result) => {
+            if(result.failed.length) {
+                setState('COMPLETE_WITH_ERRORS');
+            } else {
+                complete();
+            }
+        });
+    }"
     x-on:select-files.window="document.querySelector('.uppy-trigger').click(); if ('activeElement' in document) document.activeElement.blur();">
     <div class="absolute inset-x-0 bottom-0 z-50" wire:ignore>
         <input type="file" name="files[]" class="hidden uppy-trigger" multiple="true" x-on:change="loadFiles($event)"/>

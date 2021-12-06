@@ -6411,9 +6411,6 @@ var __webpack_exports__ = {};
   !*** ./resources/js/shuttle.js ***!
   \*********************************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
 /* harmony import */ var _uppy_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @uppy/core */ "./node_modules/@uppy/core/lib/index.js");
 /* harmony import */ var _uppy_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_uppy_core__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _uppy_drop_target__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @uppy/drop-target */ "./node_modules/@uppy/drop-target/lib/index.js");
@@ -6424,9 +6421,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var Shuttle = function Shuttle(config) {
+window.Shuttle = function (config) {
   return {
-    context: config.uploadContext,
+    config: config,
+    context: {},
     uppy: null,
     state: 'IDLE',
     percent: 0,
@@ -6453,7 +6451,7 @@ var Shuttle = function Shuttle(config) {
         }
       }, 3000);
     },
-    unload: function unload(e) {
+    unload: function unloadHandler(e) {
       if (this.state == 'UPLOADING') {
         e.preventDefault();
         e.returnValue = 'Are you sure you want to leave this page? Uploads in progress will be cancelled.';
@@ -6476,66 +6474,13 @@ var Shuttle = function Shuttle(config) {
         }
       });
       event.target.value = null;
-    },
-    init: function init() {
-      var _this3 = this;
-
-      console.log(config);
-      window.addEventListener('beforeunload', function (e) {
-        _this3.unload(e);
-      });
-      this.uppy = new (_uppy_core__WEBPACK_IMPORTED_MODULE_0___default())({
-        autoProceed: true,
-        allowMultipleUploads: true,
-        debug: true,
-        onBeforeFileAdded: function onBeforeFileAdded(file) {
-          file.meta = Object.assign(file.meta, context);
-          file.meta.size = file.data.size;
-        }
-      }).use((_uppy_drop_target__WEBPACK_IMPORTED_MODULE_1___default()), {
-        target: document.querySelector(config.dropTarget)
-      }).use((_uppy_aws_s3_multipart__WEBPACK_IMPORTED_MODULE_2___default()), {
-        limit: 300,
-        companionUrl: config.baseUrl
-      }).on('file-added', function (file) {
-        _this3.setState('UPLOADING');
-
-        _this3.files[file.id] = {
-          id: file.id,
-          name: file.name,
-          size: file.size,
-          progress: 0,
-          status: 'uploading'
-        };
-      }).on('upload-progress', function (file, progress) {
-        _this3.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
-      }).on('progress', function (progress) {
-        _this3.percent = progress;
-      }).on('upload-success', function (file, response) {
-        _this3.filesUploaded++;
-        _this3.files[file.id].status = 'complete';
-        setTimeout(function () {
-          delete _this3.files[file.id];
-
-          _this3.$wire.render();
-        }, 500);
-      }).on('upload-error', function (file, error, response) {
-        _this3.files[file.id].status = 'error';
-      }).on('file-removed', function (file, reason) {
-        delete _this3.files[file.id];
-      }).on('complete', function (result) {
-        if (result.failed.length) {
-          _this3.setState('COMPLETE_WITH_ERRORS');
-        } else {
-          _this3.complete();
-        }
-      });
     }
   };
 };
 
-window.Shuttle = Shuttle;
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Shuttle);
+window.Uppy = (_uppy_core__WEBPACK_IMPORTED_MODULE_0___default());
+window.UppyDropTarget = (_uppy_drop_target__WEBPACK_IMPORTED_MODULE_1___default());
+window.AwsS3Multipart = (_uppy_aws_s3_multipart__WEBPACK_IMPORTED_MODULE_2___default());
 })();
 
 /******/ })()
