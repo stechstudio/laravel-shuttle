@@ -1,9 +1,6 @@
 import Uppy from "@uppy/core"
 import DropTarget from "@uppy/drop-target"
 import Multipart from "@uppy/aws-s3-multipart"
-import '@uppy/core/dist/style.css'
-import '@uppy/drop-target/dist/style.css'
-// import FileInput from "@uppy/file-input"
 
 const Shuttle = (config) => ({
     context: config.uploadContext,
