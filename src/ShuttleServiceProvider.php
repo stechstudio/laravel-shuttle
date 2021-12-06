@@ -13,7 +13,8 @@ class ShuttleServiceProvider extends PackageServiceProvider
             ->name('laravel-shuttle')
             ->hasConfigFile()
             ->hasViews()
-            ->hasAssets();
+            ->hasAssets()
+            ->hasMigration('create_uploads_table');
     }
 
     public function registeringPackage(): void
