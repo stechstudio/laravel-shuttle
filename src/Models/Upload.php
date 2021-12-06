@@ -1,6 +1,6 @@
 <?php
 
-namespace STS\Shuttle;
+namespace STS\Shuttle\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

@@ -5,6 +5,7 @@ namespace STS\Shuttle;
 use Closure;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use STS\Shuttle\Models\Upload;
 
 class ShuttleManager
 {
@@ -46,22 +47,27 @@ class ShuttleManager
 
     public function routes()
     {
-        Route::name('uploader.')->prefix(config('shuttle.url_prefix') . '/s3/multipart')->group(function () {
-            Route::post('/', fn () => Upload::begin(request('metadata'), $this->owner(request('metadata'))))
-                ->name('create');
+        Route::name('uploader.')
+            ->prefix(config('shuttle.url_prefix') . '/s3/multipart')
+            ->withoutMiddleware([
+                \App\Http\Middleware\VerifyCsrfToken::class,
+            ])
+            ->group(function () {
+                Route::post('/', fn () => Upload::begin(request('metadata'), $this->owner(request('metadata'))))
+                    ->name('create');
 
-            Route::get('/{uploadId}', fn () => Upload::parts(request('key'), request('uploadId')))
-                ->name('get-parts');
+                Route::get('/{uploadId}', fn () => Upload::parts(request('key'), request('uploadId')))
+                    ->name('get-parts');
 
-            Route::get('/{uploadId}/{partNumber}', fn () => Upload::sign(request('key'), request('uploadId'), request('partNumber')))
-                ->name('sign-part');
+                Route::get('/{uploadId}/{partNumber}', fn () => Upload::sign(request('key'), request('uploadId'), request('partNumber')))
+                    ->name('sign-part');
 
-            Route::delete('/{uploadId}', fn () => Upload::abort(request('key'), request('uploadId')))
-                ->name('abort');
+                Route::delete('/{uploadId}', fn () => Upload::abort(request('key'), request('uploadId')))
+                    ->name('abort');
 
-            Route::post('/{uploadId}/complete', fn () => Upload::complete(request('key'), request('uploadId'), request('parts')))
-                ->name('complete');
-        });
+                Route::post('/{uploadId}/complete', fn () => Upload::complete(request('key'), request('uploadId'), request('parts')))
+                    ->name('complete');
+            });
     }
 
     public function resolveS3ClientWith(Closure $resolver)
