@@ -59,7 +59,7 @@ class ShuttleManager
                 Route::get('/{uploadId}', fn () => Upload::parts(request('key'), request('uploadId')))
                     ->name('get-parts');
 
-                Route::get('/{uploadId}/{partNumber}', fn () => Upload::sign(request('key'), request('uploadId'), request('partNumber')))
+                Route::get('/{uploadId}/{partNumber}', fn (string $uploadId, string $partNumber) => Upload::sign(request('key'), $uploadId, $partNumber))
                     ->name('sign-part');
 
                 Route::delete('/{uploadId}', fn () => Upload::abort(request('key'), request('uploadId')))
@@ -107,6 +107,6 @@ class ShuttleManager
 
     public function complete(Upload $upload)
     {
-        call_user_func($this->completeHandler, $upload);
+        value($this->completeHandler, $upload);
     }
 }
