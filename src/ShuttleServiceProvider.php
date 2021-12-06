@@ -12,7 +12,8 @@ class ShuttleServiceProvider extends PackageServiceProvider
         $package
             ->name('laravel-shuttle')
             ->hasConfigFile()
-            ->hasViews();
+            ->hasViews()
+            ->hasAssets();
     }
 
     public function registeringPackage(): void

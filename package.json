@@ -1,0 +1,14 @@
+{
+    "private": true,
+    "scripts": {
+        "dev": "mix",
+        "watch": "mix watch"
+    },
+    "devDependencies": {
+        "@uppy/aws-s3-multipart": "^2.1.1",
+        "@uppy/core": "^2.1.2",
+        "@uppy/drop-target": "^1.1.1",
+        "@uppy/file-input": "^2.0.4",
+        "laravel-mix": "^6.0.39"
+    }
+}
