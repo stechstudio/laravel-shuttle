@@ -1,0 +1,8 @@
+.drop-target {
+    @apply hidden;
+}
+
+body.uppy-is-drag-over .drop-target {
+    @apply flex;
+}
+
