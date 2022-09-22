@@ -33,7 +33,7 @@
         "spatie/laravel-package-tools": "^1.9.2"
     },
     "require-dev": {
-        "laravel/pint": "^0.2.3",
+        "laravel/pint": "^1.2",
         "nunomaduro/collision": "^6.2",
         "nunomaduro/larastan": "^2.0",
         "phpstan/extension-installer": "^1.1",

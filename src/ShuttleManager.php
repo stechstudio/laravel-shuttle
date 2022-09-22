@@ -47,7 +47,7 @@ class ShuttleManager
         return call_user_func($this->ownerResolver, $metadata);
     }
 
-    public function routes()
+    public function routes(): void
     {
         Route::name('uploader.')
             ->prefix(config('shuttle.url_prefix').'/s3/multipart')

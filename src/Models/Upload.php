@@ -47,7 +47,7 @@ class Upload extends Model
         $upload = $uploadable->uploads()->create([
             'user_id' => auth()->guard(config('shuttle.guard'))->id(),
             'uuid' => $uuid,
-            'key' => $uuid . '.' . strtolower(pathinfo($attributes['name'], PATHINFO_EXTENSION)),
+            'key' => $uuid.'.'.strtolower(pathinfo($attributes['name'], PATHINFO_EXTENSION)),
             'name' => $attributes['name'],
             'extension' => strtolower(pathinfo($attributes['name'], PATHINFO_EXTENSION)),
             'type' => $attributes['type'],
@@ -89,8 +89,7 @@ class Upload extends Model
     public static function sign($key, $uploadId, $partNumbers): array
     {
         return [
-            'presignedUrls' =>
-                collect(explode(',', $partNumbers))
+            'presignedUrls' => collect(explode(',', $partNumbers))
                     ->mapWithKeys(fn ($partNumber) => [
                         $partNumber => (string) Shuttle::s3Client()
                             ->createPresignedRequest(

@@ -7,25 +7,23 @@
             <path d="M9 13h2v5a1 1 0 11-2 0v-5z"></path>
         </svg>
 
-        <div>Drop files to upload</div>
+        <div>{{ trans(key: 'drop_files') }}</div>
     </div>
 </div>
 
 <div
     x-title="shuttle"
-
     x-data="shuttle"
-
     x-on:select-files.window="document.querySelector('.uppy-trigger').click(); if ('activeElement' in document) document.activeElement.blur();"
 >
-    <div class="absolute inset-x-0 bottom-0 z-50" wire:ignore>
+    <div wire:ignore class="absolute inset-x-0 bottom-0 z-50">
         <input x-on:change="loadFiles($event)" type="file" class="hidden uppy-trigger" name="files[]" multiple>
 
         <x-shuttle::status-bar />
     </div>
 </div>
 
-<!--suppress ES6ShorthandObjectProperty -->
+<!--suppress ES6ShorthandObjectProperty, JSUnresolvedVariable, JSUnresolvedFunction -->
 <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('shuttle', () => ({
@@ -54,7 +52,7 @@
             showDetails: false,
 
             init() {
-                window.addEventListener('beforeunload', this.unload());
+                window.addEventListener('beforeunload', this.unload);
 
                 this.createUppyInstance();
             },
@@ -238,7 +236,6 @@
         box-sizing: border-box;
         position: fixed;
         width: 100%;
-        height: 100%;
         left: 0;
         top: 0;
         z-index: 99999;
