@@ -1,4 +1,9 @@
-@props(['trigger' => false, 'dropTarget' => 'body', 'config' => '{}'])
+@props([
+    'trigger' => false,
+    'dropTarget' => 'body',
+    'config' => '{}',
+    'debug' => false,
+])
 
 <div class="fixed h-screen drop-target absolute inset-0 z-50 bg-gray-500 bg-opacity-75 items-center justify-center">
     <div class="text-2xl xl:text-4xl text-white font-bold flex flex-col items-center">
@@ -37,6 +42,8 @@
                 dropTarget: '{{ $dropTarget }}',
             },
 
+            debug: '{{ $debug }}',
+
             uppy: null,
 
             state: 'IDLE',
@@ -52,12 +59,20 @@
             showDetails: false,
 
             init() {
+                this.debugIf(this.debug, () => {
+                    console.log('calling init');
+                });
+
                 window.addEventListener('beforeunload', this.unload);
 
                 this.createUppyInstance();
             },
 
             createUppyInstance() {
+                this.debugIf(this.debug, () => {
+                    console.log('calling createUppyInstance');
+                });
+
                 this.uppy = new Uppy({
                     autoProceed: true,
                     allowMultipleUploads: true,
@@ -74,6 +89,10 @@
             },
 
             loadUppyPlugins() {
+                this.debugIf(this.debug, () => {
+                    console.log('calling loadUppyPlugins');
+                });
+
                 this.uppy
                     .use(UppyDropTarget, {
                         target: document.querySelector(this.config.dropTarget)
@@ -88,6 +107,10 @@
             },
 
             addUppyEvents() {
+                this.debugIf(this.debug, () => {
+                    console.log('calling addUppyEvents');
+                });
+
                 this.uppy
                     .on('file-added', (file) => {
                         this.setState('UPLOADING');
@@ -100,29 +123,61 @@
                     })
 
                     .on('upload-progress', (file, progress) => {
+                        this.debugIf(this.debug, () => {
+                            console.log('on upload-progress');
+                            console.log('file', file);
+                            console.log('progress', progress);
+                        });
+
                         Livewire.emit('uploadProgress', file, progress);
 
                         this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
 
                         this.files[file.id].status = 'uploading';
 
+                        this.debugIf(this.debug, () => {
+                            console.log('setting state to UPLOADING');
+                        });
+
                         this.setState('UPLOADING');
                     })
 
                     .on('progress', (progress) => {
+                        this.debugIf(this.debug, () => {
+                            console.log('on progress');
+                            console.log('progress', progress);
+                            console.log('emitting progress Livewire event');
+                        });
+
                         Livewire.emit('progress', progress);
 
                         this.percent = progress;
+
+                        this.debugIf(this.debug, () => {
+                            console.log('setting state to UPLOADING');
+                        });
 
                         this.setState('UPLOADING');
                     })
 
                     .on('upload-success', (file) => {
+                        this.debugIf(this.debug, () => {
+                            console.log('on upload-success');
+                            console.log('emitting uploadSuccess Livewire event');
+                            console.log('file', file);
+                            console.log('incrementing filesUploaded', filesUploaded);
+                        });
+
                         Livewire.emit('uploadSuccess', file);
 
                         this.filesUploaded++;
 
                         this.files[file.id].status = 'complete';
+
+                        this.debugIf(this.debug, () => {
+                            console.log('setting status to complete');
+                            console.log('forcing a rerender');
+                        });
 
                         setTimeout(() => {
                             @this.render();
@@ -130,19 +185,42 @@
                     })
 
                     .on('upload-error', (file) => {
+                        this.debugIf(this.debug, () => {
+                            console.log('on upload-error');
+                            console.log('emitting uploadError Livewire event');
+                            console.log('file', file);
+                        });
+
                         Livewire.emit('uploadError', file);
 
                         this.files[file.id].status = 'error';
+
+                        this.debugIf(this.debug, () => {
+                            console.log('setting status to error');
+                            console.log('setting state to CONNECTION_LOST');
+                        });
 
                         this.setState('CONNECTION_LOST');
                     })
 
                     .on('file-removed', (file) => {
+                        this.debugIf(this.debug, () => {
+                            console.log('on file-removed');
+                            console.log('emitting fileRemoved Livewire event');
+                            console.log('file', file);
+                        });
+
                         Livewire.emit('fileRemoved', file);
 
                         this.filesInProgress--;
 
                         delete this.files[file.id];
+
+                        this.debugIf(this.debug, () => {
+                            console.log('removing the file');
+                            console.log('file', file);
+                            console.log('aborting');
+                        });
 
                         if (this.uppy.getFiles().length === 0) {
                             this.abort();
@@ -150,19 +228,37 @@
                     })
 
                     .on('complete', (result) => {
+                        this.debugIf(this.debug, () => {
+                            console.log('on complete');
+                            console.log('emitting complete Livewire event');
+                            console.log('result', result);
+                        });
+
                         Livewire.emit('complete', result);
 
                         this.filesInProgress--;
 
                         if (result.failed.length) {
+                            this.debugIf(this.debug, () => {
+                                console.log('setting state to COMPLETE_WITH_ERRORS');
+                            });
+
                             this.setState('COMPLETE_WITH_ERRORS');
                         } else {
+                            this.debugIf(this.debug, () => {
+                                console.log('calling complete method');
+                            });
+
                             this.complete();
                         }
                     });
             },
 
             filesRemaining() {
+                this.debugIf(this.debug, () => {
+                    console.log('filesRemaining', this.filesInProgress);
+                });
+
                 return this.filesInProgress;
             },
 
@@ -180,13 +276,28 @@
                 this.filesUploaded = 0;
 
                 this.filesInProgress = 0;
+
+                this.debugIf(this.debug, () => {
+                    console.log('reset');
+                    console.log('calling uppy reset method');
+                    console.log('setting percent to 0', this.percent);
+                    console.log('setting files array to []', this.files);
+                    console.log('setting files uploaded counter to 0', this.filesUploaded);
+                    console.log('setting files in progress counter to 0', this.filesInProgress);
+                });
             },
 
             complete() {
                 this.setState('COMPLETE');
 
                 setTimeout(() => {
-                    if (this.state === 'COMPLETE') {
+                    if (this.state === 'COMPLETE')
+                        this.debugIf(this.debug, () => {
+                            console.log('COMPLETE');
+                            console.log('setting state to IDLE');
+                            console.log('calling reset method');
+                        });
+                    {
                         this.setState('IDLE');
 
                         this.reset();
@@ -224,6 +335,12 @@
                 });
 
                 event.target.value = null;
+            },
+
+            debugIf(condition, callback) {
+                if (condition) {
+                    return callback;
+                }
             },
         }));
     });
