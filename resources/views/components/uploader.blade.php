@@ -76,7 +76,7 @@
                 this.uppy = new Uppy({
                     autoProceed: true,
                     allowMultipleUploads: true,
-                    debug: true,
+                    debug: this.debug,
                     onBeforeFileAdded: (file) => {
                         file.meta = Object.assign(file.meta, this.config.context);
                         file.meta.size = file.data.size;
