@@ -13,7 +13,7 @@ class ShuttleManager
 {
     protected ?Closure $baseUrlResolver = null;
 
-    protected ?Closure $ownerResolver = null;
+    protected $ownerResolver = null;
 
     protected ?Closure $s3ClientResolver = null;
 
@@ -50,21 +50,21 @@ class ShuttleManager
     public function routes(): void
     {
         Route::name('uploader.')
-            ->prefix(config('shuttle.url_prefix').'/s3/multipart')
+            ->prefix(config('shuttle.url_prefix') . '/s3/multipart')
             ->group(function () {
-                Route::post('/', fn () => Upload::begin(request('metadata'), $this->owner(request('metadata'))))
+                Route::post('/', fn() => Upload::begin(request('metadata'), $this->owner(request('metadata'))))
                     ->name('create');
 
-                Route::get('/{uploadId}', fn () => Upload::parts(request('key'), request('uploadId')))
+                Route::get('/{uploadId}', fn() => Upload::parts(request('key'), request('uploadId')))
                     ->name('get-parts');
 
-                Route::get('/{uploadId}/{partNumbers}', fn () => Upload::sign(request('key'), request('uploadId'), request('partNumbers')))
+                Route::get('/{uploadId}/{partNumbers}', fn() => Upload::sign(request('key'), request('uploadId'), request('partNumbers')))
                     ->name('sign-part');
 
-                Route::delete('/{uploadId}', fn () => Upload::abort(request('key'), request('uploadId')))
+                Route::delete('/{uploadId}', fn() => Upload::abort(request('key'), request('uploadId')))
                     ->name('abort');
 
-                Route::post('/{uploadId}/complete', fn () => Upload::complete(request('key'), request('uploadId'), request('parts')))
+                Route::post('/{uploadId}/complete', fn() => Upload::complete(request('key'), request('uploadId'), request('parts')))
                     ->name('complete');
             });
     }
@@ -97,7 +97,7 @@ class ShuttleManager
     {
         return $this->s3BucketResolver
             ? call_user_func($this->s3BucketResolver)
-            : config('filesystems.disks.'.config('shuttle.disk').'.bucket');
+            : config('filesystems.disks.' . config('shuttle.disk') . '.bucket');
     }
 
     public function whenComplete(Closure $handler): static

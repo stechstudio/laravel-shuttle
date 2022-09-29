@@ -22,7 +22,8 @@ class ShuttleServiceProvider extends PackageServiceProvider
 
     public function registeringPackage(): void
     {
-        // @todo: Does this need to be `scoped` to support Octane?
         $this->app->singleton(ShuttleManager::class);
+
+        $this->loadTranslationsFrom(path: __DIR__ . '/resources/lang', namespace: 'shuttle');
     }
 }

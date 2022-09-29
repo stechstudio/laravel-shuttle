@@ -1,6 +1,7 @@
 <div class="bg-white divide-y divide-gray-200 text-sm xl:text-base text-gray-700 max-h-48 overflow-y-auto">
     <!--suppress JSUnusedLocalSymbols -->
     <template x-for="[id, file] of Object.entries(files)" :key="id">
+        <!--suppress JSUnresolvedVariable -->
         <div x-show="showDetails || file.status === 'error'" class="flex justify-between items-center px-4 py-3">
             <div class="flex items-center">
                 <svg x-show="file.status === 'uploading'" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" class="w-6 h-6" style="margin: auto; background: none; display: block; shape-rendering: auto;">
@@ -22,7 +23,7 @@
 
             <div class="flex items-center">
                 <div x-text="file.progress"></div>
-                {{ trans(key: 'percentage_symbol') }}
+                {{ trans(key: 'shuttle::shuttle.percentage_symbol') }}
 
                 <div class="w-8 text-right">
                     <svg x-show="file.status === 'uploading'" @click="uppy.removeFile(file.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-6 h-6 cursor-pointer hover:text-red-500">

@@ -12,16 +12,18 @@
             <path d="M9 13h2v5a1 1 0 11-2 0v-5z"></path>
         </svg>
 
-        <div>{{ trans(key: 'drop_files') }}</div>
+        <div>{{ trans(key: 'shuttle::shuttle.drop_files') }}</div>
     </div>
 </div>
 
+<!--suppress JSUnresolvedVariable -->
 <div
     x-title="shuttle"
     x-data="shuttle"
     x-on:select-files.window="document.querySelector('.uppy-trigger').click(); if ('activeElement' in document) document.activeElement.blur();"
 >
     <div wire:ignore class="absolute inset-x-0 bottom-0 z-50">
+        <!--suppress JSUnresolvedFunction -->
         <input x-on:change="loadFiles($event)" type="file" class="hidden uppy-trigger" name="files[]" multiple>
 
         <x-shuttle::status-bar />
@@ -59,20 +61,12 @@
             showDetails: false,
 
             init() {
-                this.debugIf(this.debug, () => {
-                    console.log('calling init');
-                });
-
                 window.addEventListener('beforeunload', this.unload);
 
                 this.createUppyInstance();
             },
 
             createUppyInstance() {
-                this.debugIf(this.debug, () => {
-                    console.log('calling createUppyInstance');
-                });
-
                 this.uppy = new Uppy({
                     autoProceed: true,
                     allowMultipleUploads: true,
@@ -80,6 +74,7 @@
                     onBeforeFileAdded: (file) => {
                         file.meta = Object.assign(file.meta, this.config.context);
                         file.meta.size = file.data.size;
+                        file.meta.attempts = 0;
                     },
                 });
 
@@ -89,10 +84,6 @@
             },
 
             loadUppyPlugins() {
-                this.debugIf(this.debug, () => {
-                    console.log('calling loadUppyPlugins');
-                });
-
                 this.uppy
                     .use(UppyDropTarget, {
                         target: document.querySelector(this.config.dropTarget)
@@ -107,10 +98,6 @@
             },
 
             addUppyEvents() {
-                this.debugIf(this.debug, () => {
-                    console.log('calling addUppyEvents');
-                });
-
                 this.uppy
                     .on('file-added', (file) => {
                         this.setState('UPLOADING');
@@ -119,15 +106,20 @@
 
                         this.filesInProgress++;
 
-                        this.files[file.id] = { id: file.id, name: file.name, size: file.size, progress: 0, status: 'uploading' };
+                        this.files[file.id] = {
+                            id: file.id,
+                            name: file.name,
+                            size: file.size,
+                            progress: 0,
+                            status: 'uploading',
+                            retries: 0,
+                        };
                     })
 
                     .on('upload-progress', (file, progress) => {
-                        this.debugIf(this.debug, () => {
-                            console.log('on upload-progress');
-                            console.log('file', file);
-                            console.log('progress', progress);
-                        });
+                        if (! this.checkInternetConnection()) {
+                            return;
+                        }
 
                         Livewire.emit('uploadProgress', file, progress);
 
@@ -135,92 +127,53 @@
 
                         this.files[file.id].status = 'uploading';
 
-                        this.debugIf(this.debug, () => {
-                            console.log('setting state to UPLOADING');
-                        });
-
                         this.setState('UPLOADING');
                     })
 
                     .on('progress', (progress) => {
-                        this.debugIf(this.debug, () => {
-                            console.log('on progress');
-                            console.log('progress', progress);
-                            console.log('emitting progress Livewire event');
-                        });
+                        if (! this.checkInternetConnection()) {
+                            return;
+                        }
 
                         Livewire.emit('progress', progress);
 
                         this.percent = progress;
 
-                        this.debugIf(this.debug, () => {
-                            console.log('setting state to UPLOADING');
-                        });
-
                         this.setState('UPLOADING');
                     })
 
                     .on('upload-success', (file) => {
-                        this.debugIf(this.debug, () => {
-                            console.log('on upload-success');
-                            console.log('emitting uploadSuccess Livewire event');
-                            console.log('file', file);
-                            console.log('incrementing filesUploaded', filesUploaded);
-                        });
-
                         Livewire.emit('uploadSuccess', file);
 
                         this.filesUploaded++;
 
                         this.files[file.id].status = 'complete';
 
-                        this.debugIf(this.debug, () => {
-                            console.log('setting status to complete');
-                            console.log('forcing a rerender');
-                        });
-
                         setTimeout(() => {
-                            @this.render();
+                            @this.
+                            render();
                         }, 500);
                     })
 
                     .on('upload-error', (file) => {
-                        this.debugIf(this.debug, () => {
-                            console.log('on upload-error');
-                            console.log('emitting uploadError Livewire event');
-                            console.log('file', file);
-                        });
-
                         Livewire.emit('uploadError', file);
 
                         this.files[file.id].status = 'error';
 
-                        this.debugIf(this.debug, () => {
-                            console.log('setting status to error');
-                            console.log('setting state to CONNECTION_LOST');
-                        });
+                        if (this.files[file.id].retries === 0) {
+                            // retry once...
+                            this.uppy.retryUpload(file.id).then();
 
-                        this.setState('CONNECTION_LOST');
+                            this.files[file.id].retries = 1;
+                        }
                     })
 
                     .on('file-removed', (file) => {
-                        this.debugIf(this.debug, () => {
-                            console.log('on file-removed');
-                            console.log('emitting fileRemoved Livewire event');
-                            console.log('file', file);
-                        });
-
                         Livewire.emit('fileRemoved', file);
 
                         this.filesInProgress--;
 
                         delete this.files[file.id];
-
-                        this.debugIf(this.debug, () => {
-                            console.log('removing the file');
-                            console.log('file', file);
-                            console.log('aborting');
-                        });
 
                         if (this.uppy.getFiles().length === 0) {
                             this.abort();
@@ -228,37 +181,21 @@
                     })
 
                     .on('complete', (result) => {
-                        this.debugIf(this.debug, () => {
-                            console.log('on complete');
-                            console.log('emitting complete Livewire event');
-                            console.log('result', result);
-                        });
-
                         Livewire.emit('complete', result);
 
                         this.filesInProgress--;
 
                         if (result.failed.length) {
-                            this.debugIf(this.debug, () => {
-                                console.log('setting state to COMPLETE_WITH_ERRORS');
-                            });
-
                             this.setState('COMPLETE_WITH_ERRORS');
-                        } else {
-                            this.debugIf(this.debug, () => {
-                                console.log('calling complete method');
-                            });
+                        }
 
+                        if (this.filesRemaining() === 0) {
                             this.complete();
                         }
                     });
             },
 
             filesRemaining() {
-                this.debugIf(this.debug, () => {
-                    console.log('filesRemaining', this.filesInProgress);
-                });
-
                 return this.filesInProgress;
             },
 
@@ -276,32 +213,16 @@
                 this.filesUploaded = 0;
 
                 this.filesInProgress = 0;
-
-                this.debugIf(this.debug, () => {
-                    console.log('reset');
-                    console.log('calling uppy reset method');
-                    console.log('setting percent to 0', this.percent);
-                    console.log('setting files array to []', this.files);
-                    console.log('setting files uploaded counter to 0', this.filesUploaded);
-                    console.log('setting files in progress counter to 0', this.filesInProgress);
-                });
             },
 
             complete() {
                 this.setState('COMPLETE');
 
                 setTimeout(() => {
-                    if (this.state === 'COMPLETE')
-                        this.debugIf(this.debug, () => {
-                            console.log('COMPLETE');
-                            console.log('setting state to IDLE');
-                            console.log('calling reset method');
-                        });
-                    {
+                    if (this.filesInProgress === 0)
                         this.setState('IDLE');
 
-                        this.reset();
-                    }
+                    this.reset();
                 }, 3000);
             },
 
@@ -315,7 +236,7 @@
                 if (this.state === 'UPLOADING') {
                     e.preventDefault();
 
-                    e.returnValue = 'Are you sure you want to leave this page? Uploads in progress will be cancelled.';
+                    e.returnValue = '{{ trans(key: 'shuttle::shuttle.are_you_sure') }}';
                 }
             },
 
@@ -324,10 +245,10 @@
                     try {
                         this.uppy.addFile({
                             source: 'file input',
-                            name: file.name,
+                            name: file.name + rand(),
                             type: file.type,
                             data: file,
-                            meta: {}
+                            meta: {},
                         });
                     } catch (err) {
                         uppy.log(err);
@@ -337,11 +258,16 @@
                 event.target.value = null;
             },
 
-            debugIf(condition, callback) {
-                if (condition) {
-                    return callback;
+            checkInternetConnection() {
+                let connected = navigator.onLine;
+
+                // check if the user is connected to the internet
+                if (! connected) {
+                    this.setState('CONNECTION_LOST');
                 }
-            },
+
+                return connected;
+            }
         }));
     });
 </script>
