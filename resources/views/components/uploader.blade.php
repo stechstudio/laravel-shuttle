@@ -146,6 +146,7 @@
                         Livewire.emit('uploadSuccess', file);
 
                         this.filesUploaded++;
+                        this.filesInProgress--;
 
                         this.files[file.id].status = 'complete';
 
@@ -171,8 +172,6 @@
                     .on('file-removed', (file) => {
                         Livewire.emit('fileRemoved', file);
 
-                        this.filesInProgress--;
-
                         delete this.files[file.id];
 
                         if (this.uppy.getFiles().length === 0) {
@@ -189,14 +188,14 @@
                             this.setState('COMPLETE_WITH_ERRORS');
                         }
 
-                        if (this.filesRemaining() === 0) {
+                        if (this.filesRemaining === 0) {
                             this.complete();
                         }
                     });
             },
 
-            filesRemaining() {
-                return this.filesInProgress;
+            get filesRemaining() {
+                return Math.max(0, this.filesInProgress);
             },
 
             setState(state) {
@@ -216,14 +215,17 @@
             },
 
             complete() {
-                this.setState('COMPLETE');
+                setTimeout(() => {
+                    this.setState('COMPLETE');
+                }, 1000);
 
                 setTimeout(() => {
-                    if (this.filesInProgress === 0)
+                    if (this.filesRemaining === 0) {
                         this.setState('IDLE');
 
-                    this.reset();
-                }, 3000);
+                        this.reset();
+                    }
+                }, 2000);
             },
 
             abort() {

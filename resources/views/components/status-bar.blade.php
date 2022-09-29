@@ -20,7 +20,7 @@
                 <span x-show="state === 'CONNECTION_LOST'">{{ trans(key: 'shuttle::shuttle.connection_lost') }}</span>
 
                 <!--suppress JSUnresolvedFunction -->
-                <span x-text="filesRemaining()"></span> {{ trans(key: 'shuttle::shuttle.remaining') }}
+                <span x-text="filesRemaining"></span> {{ trans(key: 'shuttle::shuttle.remaining') }}
             </div>
 
             <div x-show="state === 'COMPLETE'">
