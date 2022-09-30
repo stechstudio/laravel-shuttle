@@ -156,7 +156,6 @@
             addUppyEvents() {
                 Alpine.store('shuttle').uppy
                     .on('file-added', (file) => {
-                        alert('FILE ADDED');
                         Alpine.store('shuttle').setState('UPLOADING');
                         Alpine.store('shuttle').incrementFilesInProgressCounter();
 
@@ -229,17 +228,13 @@
             },
 
             complete() {
-                setTimeout(() => {
-                    Alpine.store('shuttle').setState('COMPLETE');
-                }, 1000);
+                Alpine.store('shuttle').setState('COMPLETE');
 
                 setTimeout(() => {
-                    if (this.filesRemaining === 0) {
-                        Alpine.store('shuttle').setState('IDLE');
+                    Alpine.store('shuttle').setState('IDLE');
 
-                        this.reset();
-                    }
-                }, 2000);
+                    this.reset();
+                }, 750);
             },
 
             abort() {
@@ -267,7 +262,6 @@
              * @param event
              */
             loadFiles(event) {
-                alert('LOAD FILES');
                 Array.from(event.target.files).forEach((file) => {
                     try {
                         Alpine.store('shuttle').uppy.addFile({
