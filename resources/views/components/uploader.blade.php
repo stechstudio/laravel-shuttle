@@ -106,6 +106,13 @@
             },
 
             reset() {
+                // Let's double check to make sure there aren't no files currently being uploaded
+                if (this.filesInProgress > 0) {
+                    return;
+                }
+
+                this.state = 'IDLE';
+
                 this.uppy.reset();
 
                 this.overallProgress = 0;
@@ -205,9 +212,9 @@
                     })
 
                     .on('file-removed', (file) => {
-                        Livewire.emit('fileRemoved', file);
-
                         delete Alpine.store('shuttle').files[file.id];
+
+                        Alpine.store('shuttle').decrementFilesInProgressCounter();
 
                         if (Alpine.store('shuttle').uppy.getFiles().length === 0) {
                             this.abort();
@@ -215,8 +222,6 @@
                     })
 
                     .on('complete', (result) => {
-                        Alpine.store('shuttle').decrementFilesInProgressCounter();
-
                         if (result.failed.length) {
                             Alpine.store('shuttle').setState('COMPLETE_WITH_ERRORS');
                         }
@@ -228,13 +233,15 @@
             },
 
             complete() {
+                if (Alpine.store('shuttle').filesRemaining !== 0) {
+                    return;
+                }
+
                 Alpine.store('shuttle').setState('COMPLETE');
 
                 setTimeout(() => {
-                    Alpine.store('shuttle').setState('IDLE');
-
-                    this.reset();
-                }, 750);
+                    Alpine.store('shuttle').reset();
+                }, 1000);
             },
 
             abort() {
