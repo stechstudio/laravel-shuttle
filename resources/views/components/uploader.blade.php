@@ -54,13 +54,13 @@
                 return Math.max(0, this.filesInProgress);
             },
 
-            createUppyInstance() {
+            createUppyInstance(config) {
                 this.uppy = new Uppy({
                     autoProceed: true,
                     allowMultipleUploads: true,
                     debug: this.debug,
                     onBeforeFileAdded: (file) => {
-                        file.meta = Object.assign(file.meta, this.config.context);
+                        file.meta = Object.assign(file.meta, config.context);
                         file.meta.size = file.data.size;
                         file.meta.attempts = 0;
                     },
@@ -102,7 +102,7 @@
             },
 
             toggleShowDetails(show) {
-                this.toggleShowDetails = show;
+                this.showDetails = show;
             },
 
             reset() {
@@ -132,7 +132,7 @@
             init() {
                 window.addEventListener('beforeunload', this.unload);
 
-                Alpine.store('shuttle').createUppyInstance();
+                Alpine.store('shuttle').createUppyInstance(this.config);
 
                 this.loadUppyPlugins();
 
@@ -156,6 +156,7 @@
             addUppyEvents() {
                 Alpine.store('shuttle').uppy
                     .on('file-added', (file) => {
+                        alert('FILE ADDED');
                         Alpine.store('shuttle').setState('UPLOADING');
                         Alpine.store('shuttle').incrementFilesInProgressCounter();
 
@@ -201,7 +202,7 @@
                     .on('upload-error', (file) => {
                         Alpine.store('shuttle').files[file.id].status = 'error';
 
-                        retryFileUpload(file);
+                        this.retryFileUpload(file);
                     })
 
                     .on('file-removed', (file) => {
@@ -209,7 +210,7 @@
 
                         delete Alpine.store('shuttle').files[file.id];
 
-                        if (this.uppy.getFiles().length === 0) {
+                        if (Alpine.store('shuttle').uppy.getFiles().length === 0) {
                             this.abort();
                         }
                     })
@@ -244,7 +245,7 @@
             abort() {
                 Alpine.store('shuttle').setState('IDLE');
 
-                this.reset();
+                Alpine.store('shuttle').reset();
             },
 
             /**
@@ -266,9 +267,10 @@
              * @param event
              */
             loadFiles(event) {
+                alert('LOAD FILES');
                 Array.from(event.target.files).forEach((file) => {
                     try {
-                        this.uppy.addFile({
+                        Alpine.store('shuttle').uppy.addFile({
                             source: 'file input',
                             name: file.name + rand(),
                             type: file.type,
@@ -305,7 +307,7 @@
              */
             retryFileUpload(file) {
                 if (Alpine.store('shuttle').files[file.id].retries === 0) {
-                    this.uppy.retryUpload(file.id).then();
+                    Alpine.store('shuttle').uppy.retryUpload(file.id).then();
 
                     Alpine.store('shuttle').files[file.id].retries = 1;
                 }
