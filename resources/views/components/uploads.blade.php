@@ -26,13 +26,9 @@
                 {{ trans(key: 'shuttle::shuttle.percentage_symbol') }}
 
                 <div class="w-8 text-right">
-                    <svg x-show="file.status === 'uploading'" @click="$store.shuttle.uppy.removeFile(file.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-6 h-6 cursor-pointer hover:text-red-500">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+                    <x-shuttle::remove-icon x-show="file.status === 'uploading'" @click="$store.shuttle.uppy.removeFile(file.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-6 h-6 cursor-pointer hover:text-red-500" />
 
-                    <svg x-show="file.status === 'error'" @click="uppy.retryUpload(file.id).then()" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-6 h-6 cursor-pointer hover:text-red-500">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
-                    </svg>
+                    <x-shuttle::retry-icon x-show="file.status === 'error'" @click="uppy.retryUpload(file.id).then()" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-6 h-6 cursor-pointer hover:text-red-500" />
                 </div>
             </div>
         </div>
