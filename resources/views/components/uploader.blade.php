@@ -30,27 +30,17 @@
     </div>
 </div>
 
-<!--suppress ES6ShorthandObjectProperty, JSUnresolvedVariable, JSUnresolvedFunction -->
+<!--suppress ES6ShorthandObjectProperty, JSUnresolvedVariable, JSUnresolvedFunction, JSCheckFunctionSignatures -->
 <script>
     document.addEventListener('alpine:init', () => {
-        Alpine.data('shuttle', () => ({
-            newConfig: '{{ $config }}',
-
-            config: {
-                baseUrl: '{{ Shuttle::baseUrl() }}',
-
-                context: @entangle('uploadContext'),
-
-                dropTarget: '{{ $dropTarget }}',
-            },
-
-            debug: '{{ $debug }}',
+        Alpine.store('shuttle', {
+            debug: false,
 
             uppy: null,
 
             state: 'IDLE',
 
-            percent: 0,
+            overallProgress: 0,
 
             files: {},
 
@@ -60,10 +50,8 @@
 
             showDetails: false,
 
-            init() {
-                window.addEventListener('beforeunload', this.unload);
-
-                this.createUppyInstance();
+            get filesRemaining() {
+                return Math.max(0, this.filesInProgress);
             },
 
             createUppyInstance() {
@@ -78,13 +66,81 @@
                     },
                 });
 
+                return this.uppy;
+            },
+
+            setState(state) {
+                this.state = state;
+            },
+
+            setFilesUploaded(filesUploaded) {
+                this.filesUploaded = filesUploaded;
+            },
+
+            incrementFilesUploadedCounter() {
+                this.filesUploaded++;
+            },
+
+            decrementFilesUploadedCounter() {
+                this.filesUploaded--;
+            },
+
+            setOverallProgress(progress) {
+                this.overallProgress = progress;
+            },
+
+            incrementFilesInProgressCounter() {
+                this.filesInProgress++;
+            },
+
+            decrementFilesInProgressCounter() {
+                this.filesInProgress--;
+            },
+
+            setFilesInProgress(filesInProgress) {
+                this.filesInProgress = filesInProgress;
+            },
+
+            toggleShowDetails(show) {
+                this.toggleShowDetails = show;
+            },
+
+            reset() {
+                this.uppy.reset();
+
+                this.overallProgress = 0;
+
+                this.files = {};
+
+                this.filesUploaded = 0;
+
+                this.filesInProgress = 0;
+            },
+        });
+
+        Alpine.data('shuttle', () => ({
+            newConfig: '{{ $config }}',
+
+            config: {
+                baseUrl: '{{ Shuttle::baseUrl() }}',
+
+                context: @entangle('uploadContext'),
+
+                dropTarget: '{{ $dropTarget }}',
+            },
+
+            init() {
+                window.addEventListener('beforeunload', this.unload);
+
+                Alpine.store('shuttle').createUppyInstance();
+
                 this.loadUppyPlugins();
 
                 this.addUppyEvents();
             },
 
             loadUppyPlugins() {
-                this.uppy
+                Alpine.store('shuttle').uppy
                     .use(UppyDropTarget, {
                         target: document.querySelector(this.config.dropTarget)
                     })
@@ -98,15 +154,12 @@
             },
 
             addUppyEvents() {
-                this.uppy
+                Alpine.store('shuttle').uppy
                     .on('file-added', (file) => {
-                        this.setState('UPLOADING');
+                        Alpine.store('shuttle').setState('UPLOADING');
+                        Alpine.store('shuttle').incrementFilesInProgressCounter();
 
-                        Livewire.emit('fileAdded', file);
-
-                        this.filesInProgress++;
-
-                        this.files[file.id] = {
+                        Alpine.store('shuttle').files[file.id] = {
                             id: file.id,
                             name: file.name,
                             size: file.size,
@@ -121,13 +174,10 @@
                             return;
                         }
 
-                        Livewire.emit('uploadProgress', file, progress);
+                        Alpine.store('shuttle').files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
+                        Alpine.store('shuttle').files[file.id].status = 'uploading';
 
-                        this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
-
-                        this.files[file.id].status = 'uploading';
-
-                        this.setState('UPLOADING');
+                        Alpine.store('shuttle').setState('UPLOADING');
                     })
 
                     .on('progress', (progress) => {
@@ -135,44 +185,29 @@
                             return;
                         }
 
-                        Livewire.emit('progress', progress);
-
-                        this.percent = progress;
-
-                        this.setState('UPLOADING');
+                        Alpine.store('shuttle').setOverallProgress(progress);
                     })
 
                     .on('upload-success', (file) => {
-                        Livewire.emit('uploadSuccess', file);
+                        Alpine.store('shuttle').incrementFilesUploadedCounter();
+                        Alpine.store('shuttle').decrementFilesInProgressCounter();
 
-                        this.filesUploaded++;
-                        this.filesInProgress--;
+                        Alpine.store('shuttle').files[file.id].status = 'complete';
 
-                        this.files[file.id].status = 'complete';
-
-                        setTimeout(() => {
-                            @this.
-                            render();
-                        }, 500);
+                        @this.
+                        render();
                     })
 
                     .on('upload-error', (file) => {
-                        Livewire.emit('uploadError', file);
+                        Alpine.store('shuttle').files[file.id].status = 'error';
 
-                        this.files[file.id].status = 'error';
-
-                        if (this.files[file.id].retries === 0) {
-                            // retry once...
-                            this.uppy.retryUpload(file.id).then();
-
-                            this.files[file.id].retries = 1;
-                        }
+                        retryFileUpload(file);
                     })
 
                     .on('file-removed', (file) => {
                         Livewire.emit('fileRemoved', file);
 
-                        delete this.files[file.id];
+                        delete Alpine.store('shuttle').files[file.id];
 
                         if (this.uppy.getFiles().length === 0) {
                             this.abort();
@@ -180,48 +215,26 @@
                     })
 
                     .on('complete', (result) => {
-                        Livewire.emit('complete', result);
-
-                        this.filesInProgress--;
+                        Alpine.store('shuttle').decrementFilesInProgressCounter();
 
                         if (result.failed.length) {
-                            this.setState('COMPLETE_WITH_ERRORS');
+                            Alpine.store('shuttle').setState('COMPLETE_WITH_ERRORS');
                         }
 
-                        if (this.filesRemaining === 0) {
+                        if (Alpine.store('shuttle').filesRemaining === 0) {
                             this.complete();
                         }
                     });
             },
 
-            get filesRemaining() {
-                return Math.max(0, this.filesInProgress);
-            },
-
-            setState(state) {
-                this.state = state;
-            },
-
-            reset() {
-                this.uppy.reset();
-
-                this.percent = 0;
-
-                this.files = {};
-
-                this.filesUploaded = 0;
-
-                this.filesInProgress = 0;
-            },
-
             complete() {
                 setTimeout(() => {
-                    this.setState('COMPLETE');
+                    Alpine.store('shuttle').setState('COMPLETE');
                 }, 1000);
 
                 setTimeout(() => {
                     if (this.filesRemaining === 0) {
-                        this.setState('IDLE');
+                        Alpine.store('shuttle').setState('IDLE');
 
                         this.reset();
                     }
@@ -229,19 +242,29 @@
             },
 
             abort() {
-                this.setState('IDLE');
+                Alpine.store('shuttle').setState('IDLE');
 
                 this.reset();
             },
 
+            /**
+             * Unload the file.
+             *
+             * @param e
+             */
             unload(e) {
-                if (this.state === 'UPLOADING') {
+                if (Alpine.store('shuttle').state === 'UPLOADING') {
                     e.preventDefault();
 
                     e.returnValue = '{{ trans(key: 'shuttle::shuttle.are_you_sure') }}';
                 }
             },
 
+            /**
+             * Prepare loading the files for upload.
+             *
+             * @param event
+             */
             loadFiles(event) {
                 Array.from(event.target.files).forEach((file) => {
                     try {
@@ -260,15 +283,32 @@
                 event.target.value = null;
             },
 
+            /**
+             * Check if the user is connected to the internet.
+             *
+             * @returns {boolean}
+             */
             checkInternetConnection() {
                 let connected = navigator.onLine;
 
-                // check if the user is connected to the internet
                 if (! connected) {
-                    this.setState('CONNECTION_LOST');
+                    Alpine.store('shuttle').setState('CONNECTION_LOST');
                 }
 
                 return connected;
+            },
+
+            /**
+             * Attempt to upload the file once more.
+             *
+             * @param file
+             */
+            retryFileUpload(file) {
+                if (Alpine.store('shuttle').files[file.id].retries === 0) {
+                    this.uppy.retryUpload(file.id).then();
+
+                    Alpine.store('shuttle').files[file.id].retries = 1;
+                }
             }
         }));
     });

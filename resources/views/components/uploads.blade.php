@@ -1,8 +1,8 @@
 <div class="bg-white divide-y divide-gray-200 text-sm xl:text-base text-gray-700 max-h-48 overflow-y-auto">
     <!--suppress JSUnusedLocalSymbols -->
-    <template x-for="[id, file] of Object.entries(files)" :key="id">
+    <template x-for="[id, file] of Object.entries($store.shuttle.files)" :key="id">
         <!--suppress JSUnresolvedVariable -->
-        <div x-show="showDetails || file.status === 'error'" class="flex justify-between items-center px-4 py-3">
+        <div x-show="$store.shuttle.showDetails || file.status === 'error'" class="flex justify-between items-center px-4 py-3">
             <div class="flex items-center">
                 <svg x-show="file.status === 'uploading'" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" class="w-6 h-6" style="margin: auto; background: none; display: block; shape-rendering: auto;">
                     <circle cx="50" cy="50" r="32" stroke-width="8" stroke="#85a2b6" stroke-dasharray="50.26548245743669 50.26548245743669" fill="none" stroke-linecap="round">
@@ -26,7 +26,7 @@
                 {{ trans(key: 'shuttle::shuttle.percentage_symbol') }}
 
                 <div class="w-8 text-right">
-                    <svg x-show="file.status === 'uploading'" @click="uppy.removeFile(file.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-6 h-6 cursor-pointer hover:text-red-500">
+                    <svg x-show="file.status === 'uploading'" @click="$store.shuttle.uppy.removeFile(file.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-6 h-6 cursor-pointer hover:text-red-500">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
 

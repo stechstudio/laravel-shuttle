@@ -2,48 +2,49 @@
 <div class="fixed bottom-0 inset-x-0">
     <div
         x-bind:class="{
-            '{{ config('shuttle.colors.details-panel.uploading') }}': state === 'UPLOADING' ,
-            '{{ config('shuttle.colors.details-panel.upload-success') }}': state === 'COMPLETE',
-            '{{ config('shuttle.colors.details-panel.upload-error') }}': state === 'COMPLETE_WITH_ERRORS',
-            '{{ config('shuttle.colors.details-panel.connection-lost') }}': state === 'CONNECTION_LOST'
+            '{{ config('shuttle.colors.details-panel.uploading') }}': $store.shuttle.state === 'UPLOADING' ,
+            '{{ config('shuttle.colors.details-panel.upload-success') }}': $store.shuttle.state === 'COMPLETE',
+            '{{ config('shuttle.colors.details-panel.upload-error') }}': $store.shuttle.state === 'COMPLETE_WITH_ERRORS',
+            '{{ config('shuttle.colors.details-panel.connection-lost') }}': $store.shuttle.state === 'CONNECTION_LOST'
         }"
-        x-show="state !== 'IDLE'"
+        x-show="$store.shuttle.state !== 'IDLE'"
         class="px-6 py-3 text-white font-semibold flex items-center"
         style="display: none;"
     >
         <div class="mr-4">
-            <div x-show="state === 'UPLOADING' && percent === 0">
+            <div x-show="$store.shuttle.state === 'UPLOADING' && $store.shuttle.overallProgress === 0">
                 {{ trans(key: 'shuttle::shuttle.preparing') }}
             </div>
 
-            <div x-show="(state === 'UPLOADING' || state === 'CONNECTION_LOST') && percent > 0">
-                <span x-show="state === 'CONNECTION_LOST'">{{ trans(key: 'shuttle::shuttle.connection_lost') }}</span>
+            <div x-show="($store.shuttle.state === 'UPLOADING' || $store.shuttle.state === 'CONNECTION_LOST') && $store.shuttle.overallProgress > 0">
+                <span x-show="$store.shuttle.state === 'CONNECTION_LOST'">{{ trans(key: 'shuttle::shuttle.connection_lost') }}</span>
 
                 <!--suppress JSUnresolvedFunction -->
-                <span x-text="filesRemaining"></span> {{ trans(key: 'shuttle::shuttle.remaining') }}
+                <span x-text="$store.shuttle.filesRemaining"></span> {{ trans(key: 'shuttle::shuttle.remaining') }}
             </div>
 
-            <div x-show="state === 'COMPLETE'">
+            <div x-show="$store.shuttle.state === 'COMPLETE'">
                 {{ trans(key: 'shuttle::shuttle.finished_successfully') }}
             </div>
 
-            <div x-show="state === 'COMPLETE_WITH_ERRORS'">
+            <div x-show="$store.shuttle.state === 'COMPLETE_WITH_ERRORS'">
                 {{ trans(key: 'shuttle::shuttle.finished_with_errors') }}
             </div>
         </div>
 
         <div class="flex-grow">
-            <div x-bind:style="'width: ' + percent + '%'" class="h-1 bg-white"></div>
+            <div x-bind:style="'width: ' + $store.shuttle.overallProgress + '%'" class="h-1 bg-white"></div>
         </div>
 
         <div class="mx-4 w-12 text-right">
-            <span x-text="percent + '%'" x-show="percent > 0"></span>
+            <span x-text="$store.shuttle.overallProgress + '%'" x-show="$store.shuttle.overallProgress > 0"></span>
         </div>
 
         <div class="text-lg opacity-75 hover:opacity-100 cursor-pointer">
+            <!--suppress JSUnresolvedFunction -->
             <svg
-                @click="showDetails = ! showDetails"
-                x-show="! showDetails"
+                @click="$store.shuttle.toggleShowDetails(! $store.shuttle.showDetails);"
+                x-show="!  $store.shuttle.showDetails"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -52,9 +53,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11l7-7 7 7M5 19l7-7 7 7"></path>
             </svg>
 
+            <!--suppress JSUnresolvedFunction -->
             <svg
-                @click="showDetails = ! showDetails"
-                x-show="showDetails"
+                @click="$store.shuttle.toggleShowDetails(! $store.shuttle.showDetails);"
+                x-show="$store.shuttle.showDetails"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
