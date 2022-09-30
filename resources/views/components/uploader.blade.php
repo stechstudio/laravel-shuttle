@@ -7,10 +7,7 @@
 
 <div class="fixed h-screen drop-target absolute inset-0 z-50 bg-gray-500 bg-opacity-75 items-center justify-center">
     <div class="text-2xl xl:text-4xl text-white font-bold flex flex-col items-center">
-        <svg viewBox="0 0 20 20" fill="currentColor" class="w-32 h-32 opacity-50 mb-3">
-            <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z"></path>
-            <path d="M9 13h2v5a1 1 0 11-2 0v-5z"></path>
-        </svg>
+        <x-shuttle::drop-icon viewBox="0 0 20 20" fill="currentColor" class="w-32 h-32 opacity-50 mb-3" />
 
         <div>{{ trans(key: 'shuttle::shuttle.drop_files') }}</div>
     </div>
@@ -54,6 +51,12 @@
                 return Math.max(0, this.filesInProgress);
             },
 
+            /**
+             * Create a Uppy instance.
+             *
+             * @param config
+             * @returns {null}
+             */
             createUppyInstance(config) {
                 this.uppy = new Uppy({
                     autoProceed: true,
@@ -69,42 +72,80 @@
                 return this.uppy;
             },
 
+            /**
+             * Set the state.
+             *
+             * @param state
+             */
             setState(state) {
                 this.state = state;
             },
 
+            /**
+             * Set the number of files that are uploaded.
+             *
+             * @param filesUploaded
+             */
             setFilesUploaded(filesUploaded) {
                 this.filesUploaded = filesUploaded;
             },
 
+            /**
+             * Increment the number of files uploaded by 1.
+             */
             incrementFilesUploadedCounter() {
                 this.filesUploaded++;
             },
 
+            /**
+             * Decrement the number of files uploaded by 1.
+             */
             decrementFilesUploadedCounter() {
                 this.filesUploaded--;
             },
 
+            /**
+             * Set the overall progress.
+             *
+             * @param progress
+             */
             setOverallProgress(progress) {
                 this.overallProgress = progress;
             },
 
+            /**
+             * Increment the number of files in progress by 1.
+             */
             incrementFilesInProgressCounter() {
                 this.filesInProgress++;
             },
 
+            /**
+             * Decrement the number of files in progress by 1.
+             */
             decrementFilesInProgressCounter() {
                 this.filesInProgress--;
             },
 
+            /**
+             * Set the number of files in progress.
+             */
             setFilesInProgress(filesInProgress) {
                 this.filesInProgress = filesInProgress;
             },
 
+            /**
+             * Toggle the show details panel.
+             *
+             * @param show
+             */
             toggleShowDetails(show) {
                 this.showDetails = show;
             },
 
+            /**
+             * Reset the states of the uploader, uploads and the status bar.
+             */
             reset() {
                 // Let's double check to make sure there aren't no files currently being uploaded
                 if (this.filesInProgress > 0) {
@@ -146,6 +187,9 @@
                 this.addUppyEvents();
             },
 
+            /**
+             * Load the Uppy plugins.
+             */
             loadUppyPlugins() {
                 Alpine.store('shuttle').uppy
                     .use(UppyDropTarget, {
@@ -160,6 +204,9 @@
                     });
             },
 
+            /**
+             * Add the Uppy events.
+             */
             addUppyEvents() {
                 Alpine.store('shuttle').uppy
                     .on('file-added', (file) => {
@@ -232,6 +279,9 @@
                     });
             },
 
+            /**
+             * This method is fired once all file uploads are complete.
+             */
             complete() {
                 if (Alpine.store('shuttle').filesRemaining !== 0) {
                     return;
@@ -244,6 +294,9 @@
                 }, 1000);
             },
 
+            /**
+             * Abort all upload and reset all state.
+             */
             abort() {
                 Alpine.store('shuttle').setState('IDLE');
 
