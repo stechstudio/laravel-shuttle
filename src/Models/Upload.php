@@ -45,22 +45,22 @@ class Upload extends Model
 
         // @phpstan-ignore-next-line
         $upload = $uploadable->uploads()->create([
-            'user_id'   => auth()->guard(config('shuttle.guard'))->id(),
-            'uuid'      => $uuid,
-            'key'       => $uuid . '.' . strtolower(pathinfo($attributes['name'], PATHINFO_EXTENSION)),
-            'name'      => $attributes['name'],
+            'user_id' => auth()->guard(config('shuttle.guard'))->id(),
+            'uuid' => $uuid,
+            'key' => $uuid . '.' . strtolower(pathinfo($attributes['name'], PATHINFO_EXTENSION)),
+            'name' => $attributes['name'],
             'extension' => strtolower(pathinfo($attributes['name'], PATHINFO_EXTENSION)),
-            'type'      => $attributes['type'],
-            'size'      => $attributes['size'],
+            'type' => $attributes['type'],
+            'size' => $attributes['size'],
         ]);
 
         $result = Shuttle::s3Client()->createMultipartUpload([
-            'Bucket'      => Shuttle::s3Bucket(),
-            'Key'         => $upload->key,
-            'ACL'         => 'private',
+            'Bucket' => Shuttle::s3Bucket(),
+            'Key' => $upload->key,
+            'ACL' => 'private',
             'ContentType' => $attributes['type'],
-            'Metadata'    => $attributes,
-            'Expires'     => '+24 hours',
+            'Metadata' => $attributes,
+            'Expires' => '+24 hours',
         ]);
 
         return ['key' => $result['Key'], 'uploadId' => $result['UploadId']];
@@ -69,18 +69,18 @@ class Upload extends Model
     public static function parts($key, $uploadId): array
     {
         $parts = [];
-        $next  = 0;
+        $next = 0;
 
         do {
             $result = Shuttle::s3Client()->listParts([
-                'Bucket'           => Shuttle::s3Bucket(),
-                'Key'              => $key,
-                'UploadId'         => $uploadId,
+                'Bucket' => Shuttle::s3Bucket(),
+                'Key' => $key,
+                'UploadId' => $uploadId,
                 'PartNumberMarker' => $next,
             ]);
 
             $parts = array_merge($parts, $result['Parts']);
-            $next  = $result['NextPartNumberMarker'];
+            $next = $result['NextPartNumberMarker'];
         } while ($result['IsTruncated']);
 
         return $parts;
@@ -90,16 +90,16 @@ class Upload extends Model
     {
         return [
             'presignedUrls' => collect(explode(',', $partNumbers))
-                ->mapWithKeys(fn($partNumber) => [
+                ->mapWithKeys(fn ($partNumber) => [
                     $partNumber => (string) Shuttle::s3Client()
                         ->createPresignedRequest(
                             Shuttle::s3Client()->getCommand('uploadPart', [
-                                'Bucket'     => Shuttle::s3Bucket(),
-                                'Key'        => $key,
-                                'UploadId'   => $uploadId,
+                                'Bucket' => Shuttle::s3Bucket(),
+                                'Key' => $key,
+                                'UploadId' => $uploadId,
                                 'PartNumber' => $partNumber,
-                                'Body'       => '',
-                                'Expires'    => '+15 minutes',
+                                'Body' => '',
+                                'Expires' => '+15 minutes',
                             ]),
                             '+15 minutes'
                         )
@@ -112,8 +112,8 @@ class Upload extends Model
     public static function abort($key, $uploadId)
     {
         Shuttle::s3Client()->abortMultipartUpload([
-            'Bucket'   => Shuttle::s3Bucket(),
-            'Key'      => $key,
+            'Bucket' => Shuttle::s3Bucket(),
+            'Key' => $key,
             'UploadId' => $uploadId,
         ]);
 
@@ -123,9 +123,9 @@ class Upload extends Model
     public static function complete($key, $uploadId, $parts): array
     {
         $result = Shuttle::s3Client()->completeMultipartUpload([
-            'Bucket'          => Shuttle::s3Bucket(),
-            'Key'             => $key,
-            'UploadId'        => $uploadId,
+            'Bucket' => Shuttle::s3Bucket(),
+            'Key' => $key,
+            'UploadId' => $uploadId,
             'MultipartUpload' => ['Parts' => $parts],
         ]);
 
