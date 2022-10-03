@@ -65,7 +65,6 @@
                     onBeforeFileAdded: (file) => {
                         file.meta = Object.assign(file.meta, config.context);
                         file.meta.size = file.data.size;
-                        file.meta.attempts = 0;
                     },
                 });
 
@@ -210,6 +209,8 @@
             addUppyEvents() {
                 Alpine.store('shuttle').uppy
                     .on('file-added', (file) => {
+                        Livewire.emit('fileAdded', file);
+
                         Alpine.store('shuttle').setState('UPLOADING');
                         Alpine.store('shuttle').incrementFilesInProgressCounter();
 
@@ -224,9 +225,13 @@
                     })
 
                     .on('upload-progress', (file, progress) => {
+                        Livewire.emit('connectionLost');
+
                         if (! this.checkInternetConnection()) {
                             return;
                         }
+
+                        Livewire.emit('uploadProgress', file, progress);
 
                         Alpine.store('shuttle').files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
                         Alpine.store('shuttle').files[file.id].status = 'uploading';
@@ -235,14 +240,20 @@
                     })
 
                     .on('progress', (progress) => {
+                        Livewire.emit('connectionLost');
+
                         if (! this.checkInternetConnection()) {
                             return;
                         }
+
+                        Livewire.emit('progress', progress);
 
                         Alpine.store('shuttle').setOverallProgress(progress);
                     })
 
                     .on('upload-success', (file) => {
+                        Livewire.emit('uploadSuccess', file);
+
                         Alpine.store('shuttle').incrementFilesUploadedCounter();
                         Alpine.store('shuttle').decrementFilesInProgressCounter();
 
@@ -253,12 +264,16 @@
                     })
 
                     .on('upload-error', (file) => {
+                        Livewire.emit('uploadError', file);
+
                         Alpine.store('shuttle').files[file.id].status = 'error';
 
                         this.retryFileUpload(file);
                     })
 
                     .on('file-removed', (file) => {
+                        Livewire.emit('fileRemoved', file);
+
                         delete Alpine.store('shuttle').files[file.id];
 
                         Alpine.store('shuttle').decrementFilesInProgressCounter();
@@ -269,6 +284,8 @@
                     })
 
                     .on('complete', (result) => {
+                        Livewire.emit('complete', result);
+                        
                         if (result.failed.length) {
                             Alpine.store('shuttle').setState('COMPLETE_WITH_ERRORS');
                         }
