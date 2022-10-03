@@ -14,12 +14,12 @@ return [
      * The disk you want to use for file uploads. This
      * must be a disk that uses the S3 driver.
      */
-    'disk' => 's3',
+    'disk'       => 's3',
 
     /**
      * The authentication guard used for authorization.
      */
-    'guard' => 'web',
+    'guard'      => 'web',
 
     /**
      * The background colors used for the file uploader UI.
@@ -30,7 +30,7 @@ return [
      * file. Custom HEX values are not compiled
      * at run time.
      */
-    'colors' => [
+    'colors'     => [
 
         'details-panel' => [
             'uploading' => env(key: 'DETAILS_PANEL_UPLOADING', default: 'bg-blue-500'),
@@ -39,7 +39,7 @@ return [
 
             'upload-error' => env(key: 'DETAILS_PANEL_UPLOAD_ERROR', default: 'bg-red-500'),
 
-            'connection-lost' => env(key: 'DETAILS_PANEL_CONNECTION_LOST', default: 'bg-blue-700'),
+            'connection-lost' => env(key: 'DETAILS_PANEL_CONNECTION_LOST', default: 'bg-gray-500'),
         ],
 
     ],
