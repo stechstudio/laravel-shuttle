@@ -326,7 +326,7 @@
                     try {
                         Alpine.store('shuttle').uppy.addFile({
                             source: 'file input',
-                            name: file.name + rand(),
+                            name: file.name,
                             type: file.type,
                             data: file,
                             meta: {},
