@@ -26,6 +26,7 @@
         "spatie/laravel-package-tools": "^1.9.2"
     },
     "require-dev": {
+        "illuminate/contracts": "^10.0",
         "laravel/pint": "^1.2",
         "nunomaduro/collision": "^6.2",
         "nunomaduro/larastan": "^2.0",
