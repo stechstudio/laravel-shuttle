@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'drop_files'            => 'Drop files to upload',
     'preparing'             => 'Preparing...',
+    'retrying'              => 'Retrying...',
     'remaining'             => 'remaining',
     'finished_successfully' => 'Finished successfully',
     'finished_with_errors'  => 'Finished with errors',

@@ -44,4 +44,14 @@ return [
 
     ],
 
+    'retry' => [
+
+        'maxRetryAttempts' => 3,
+
+        'retryBackoffInterval' => 1,
+
+        'retryBackoffIncreaseInterval' => 1,
+
+    ],
+
 ];

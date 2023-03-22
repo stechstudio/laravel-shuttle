@@ -2,11 +2,11 @@
 <div class="fixed bottom-0 inset-x-0">
     <div
         x-bind:class="{
-            '{{ config('shuttle.colors.details-panel.uploading') }}': $store.shuttle.state === 'UPLOADING' ,
+            '{{ config('shuttle.colors.details-panel.uploading') }}': $store.shuttle.state === 'UPLOADING' || $store.shuttle.state === 'RETRYING',
             '{{ config('shuttle.colors.details-panel.upload-success') }}': $store.shuttle.state === 'COMPLETE',
             '{{ config('shuttle.colors.details-panel.upload-error') }}': $store.shuttle.state === 'COMPLETE_WITH_ERRORS',
             '{{ config('shuttle.colors.details-panel.upload-error') }}': $store.shuttle.state === 'FAILED_WITH_ERRORS',
-            '{{ config('shuttle.colors.details-panel.connection-lost') }}': $store.shuttle.state === 'CONNECTION_LOST'
+            '{{ config('shuttle.colors.details-panel.connection-lost') }}': $store.shuttle.state === 'CONNECTION_LOST',
         }"
         x-show="$store.shuttle.state !== 'IDLE'"
         class="px-6 py-3 text-white font-semibold flex items-center"
@@ -15,6 +15,10 @@
         <div class="mr-4">
             <div x-show="$store.shuttle.state === 'UPLOADING' && $store.shuttle.overallProgress === 0">
                 {{ trans(key: 'shuttle::shuttle.preparing') }}
+            </div>
+
+            <div x-show="$store.shuttle.state === 'RETRYING' && $store.shuttle.overallProgress === 0">
+                {{ trans(key: 'shuttle::shuttle.retrying') }}
             </div>
 
             <div x-show="($store.shuttle.state === 'UPLOADING' || $store.shuttle.state === 'CONNECTION_LOST') && $store.shuttle.overallProgress > 0">
@@ -55,7 +59,6 @@
                 stroke="currentColor"
                 class="w-6 h-6"
             >
-                x
                 <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
             </svg>
 
@@ -85,5 +88,7 @@
         </div>
     </div>
 
-    <x-shuttle::uploads />
+    <div x-cloak x-show="$store.shuttle.state !== 'IDLE'">
+        <x-shuttle::uploads />
+    </div>
 </div>
