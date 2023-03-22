@@ -26,9 +26,9 @@
                 {{ trans(key: 'shuttle::shuttle.percentage_symbol') }}
 
                 <div class="w-8 text-right">
-                    <x-shuttle::remove-icon x-show="file.status === 'uploading'" @click="$store.shuttle.uppy.removeFile(file.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-6 h-6 cursor-pointer hover:text-red-500" />
+                    <x-shuttle::remove-icon x-show="file.status === 'uploading'" @click="$store.shuttle.uppy.removeFile(file.id)" />
 
-                    <x-shuttle::retry-icon x-show="file.status === 'error'" @click="uppy.retryUpload(file.id).then()" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-6 h-6 cursor-pointer hover:text-red-500" />
+                    <x-shuttle::retry-icon x-show="file.status === 'error'" @click="uppy.retryUpload(file.id).then()" />
                 </div>
             </div>
         </div>
