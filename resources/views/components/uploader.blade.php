@@ -172,13 +172,17 @@
             },
 
             init() {
-                window.addEventListener("beforeunload", this.unload);
+                try {
+                    window.addEventListener("beforeunload", this.unload);
 
-                Alpine.store("shuttle").createUppyInstance(this.config);
+                    Alpine.store("shuttle").createUppyInstance(this.config);
 
-                this.loadUppyPlugins();
+                    this.loadUppyPlugins();
 
-                this.addUppyEvents();
+                    this.addUppyEvents();
+                } catch (error) {
+                    console.log("An unknown error occured...");
+                }
             },
 
             /**
