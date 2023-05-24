@@ -178,6 +178,10 @@
                 Alpine.store("shuttle").createUppyInstance(this.config);
 
                 this.loadUppyPlugins();
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of 7c7d058 (Catch Shuttle errors)
                 this.addUppyEvents();
             },
 
