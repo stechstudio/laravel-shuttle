@@ -189,17 +189,21 @@
              * Load the Uppy plugins.
              */
             loadUppyPlugins() {
-                Alpine.store("shuttle").uppy
-                    .use(UppyDropTarget, {
-                        target: document.querySelector(this.config.dropTarget),
-                    })
-                    .use(AwsS3Multipart, {
-                        limit: 300,
-                        companionUrl: this.config.baseUrl,
-                        companionHeaders: {
-                            "X-CSRF-Token": "xxx",
-                        },
-                    });
+                try {
+                    Alpine.store("shuttle").uppy
+                        .use(UppyDropTarget, {
+                            target: document.querySelector(this.config.dropTarget),
+                        })
+                        .use(AwsS3Multipart, {
+                            limit: 300,
+                            companionUrl: this.config.baseUrl,
+                            companionHeaders: {
+                                "X-CSRF-Token": "xxx",
+                            },
+                        });
+                } catch (error) {
+                    this.abort();
+                }
             },
 
             /**
@@ -239,20 +243,24 @@
                     })
 
                     .on("upload-progress", (file, progress) => {
-                        if (! this.checkInternetConnection()) {
-                            Livewire.emit("connectionLost");
+                        try {
+                            if (! this.checkInternetConnection()) {
+                                Livewire.emit("connectionLost");
 
-                            this.retryFileUpload(file);
+                                this.retryFileUpload(file);
 
-                            return;
+                                return;
+                            }
+
+                            Livewire.emit("uploadProgress", file, progress);
+
+                            Alpine.store("shuttle").files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
+                            Alpine.store("shuttle").files[file.id].status = "uploading";
+
+                            Alpine.store("shuttle").setState("UPLOADING");
+                        } catch (error) {
+                            this.abort();
                         }
-
-                        Livewire.emit("uploadProgress", file, progress);
-
-                        Alpine.store("shuttle").files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
-                        Alpine.store("shuttle").files[file.id].status = "uploading";
-
-                        Alpine.store("shuttle").setState("UPLOADING");
                     })
 
                     .on("progress", (progress) => {
