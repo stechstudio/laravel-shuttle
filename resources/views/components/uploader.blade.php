@@ -5,9 +5,6 @@
     'debug' => false,
 ])
 
-<script src="https://cdn.jsdelivr.net/npm/axios@latest/dist/axios.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/alpinejs-ray@2/dist/standalone.min.js"></script>
-
 <div class="fixed h-screen drop-target absolute inset-0 z-50 bg-gray-500 bg-opacity-75 items-center justify-center">
     <div class="text-2xl xl:text-4xl text-white font-bold flex flex-col items-center">
         <x-shuttle::drop-icon viewBox="0 0 20 20" fill="currentColor" class="w-32 h-32 opacity-50 mb-3" />
@@ -153,10 +150,12 @@
 
                 this.uppy.reset();
 
+                this.overallProgress = 0;
+
                 this.files = {};
 
-                this.overallProgress = 0;
                 this.filesUploaded = 0;
+
                 this.filesInProgress = 0;
             },
         });
@@ -173,16 +172,17 @@
             },
 
             init() {
-                window.addEventListener("beforeunload", this.unload);
+                try {
+                    window.addEventListener("beforeunload", this.unload);
 
-                Alpine.store("shuttle").createUppyInstance(this.config);
+                    Alpine.store("shuttle").createUppyInstance(this.config);
 
-                this.loadUppyPlugins();
-<<<<<<< HEAD
-=======
+                    this.loadUppyPlugins();
 
->>>>>>> parent of 7c7d058 (Catch Shuttle errors)
-                this.addUppyEvents();
+                    this.addUppyEvents();
+                } catch (error) {
+                    console.log("An unknown error occured...");
+                }
             },
 
             /**
@@ -209,6 +209,10 @@
                 Alpine.store("shuttle").uppy
                     .on("file-added", (file) => {
                         try {
+                            if (! this.checkInternetConnection()) {
+                                return;
+                            }
+
                             Livewire.emit("fileAdded", file);
 
                             Alpine.store("shuttle").setState("UPLOADING");
@@ -220,13 +224,23 @@
                                 size: file.size,
                                 progress: 0,
                                 status: "uploading",
+                                retryAttempts: 0,
+                                maxRetryAttempts: {{ config(key: 'shuttle.retry.maxRetryAttempts') }},
+                                retryBackoffInterval: {{ config(key: 'shuttle.retry.retryBackoffInterval') }},
+                                retryBackoffIncreaseInterval: {{ config(key: 'shuttle.retry.retryBackoffIncreaseInterval') }},
                             };
                         } catch (error) {
-                            this.abort();
+                            console.log("An unknown error occured...");
                         }
                     })
 
                     .on("upload-progress", (file, progress) => {
+                        Livewire.emit("connectionLost");
+
+                        if (! this.checkInternetConnection()) {
+                            return;
+                        }
+
                         Livewire.emit("uploadProgress", file, progress);
 
                         Alpine.store("shuttle").files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
@@ -236,6 +250,12 @@
                     })
 
                     .on("progress", (progress) => {
+                        Livewire.emit("connectionLost");
+
+                        if (! this.checkInternetConnection()) {
+                            return;
+                        }
+
                         Livewire.emit("progress", progress);
 
                         Alpine.store("shuttle").setOverallProgress(progress);
@@ -256,7 +276,7 @@
                     .on("upload-error", (file) => {
                         Livewire.emit("uploadError", file);
 
-                        this.abort();
+                        this.retryFileUpload(file);
                     })
 
                     .on("file-removed", (file) => {
@@ -266,13 +286,21 @@
 
                         Alpine.store("shuttle").decrementFilesInProgressCounter();
 
-                        this.reset();
+                        if (Alpine.store("shuttle").uppy.getFiles().length === 0) {
+                            this.abort();
+                        }
                     })
 
                     .on("complete", (result) => {
                         Livewire.emit("complete", result);
 
-                        this.complete();
+                        if (result.failed.length) {
+                            Alpine.store("shuttle").setState("COMPLETE_WITH_ERRORS");
+                        }
+
+                        if (Alpine.store("shuttle").filesRemaining === 0) {
+                            this.complete();
+                        }
                     });
             },
 
@@ -280,16 +308,22 @@
              * This method is fired once all file uploads are complete.
              */
             complete() {
-                this.reset();
+                if (Alpine.store("shuttle").filesRemaining !== 0) {
+                    return;
+                }
+
+                Alpine.store("shuttle").setState("COMPLETE");
+
+                setTimeout(() => {
+                    Alpine.store("shuttle").reset();
+                }, 1000);
             },
 
             /**
-             * Abort all upload and reset all of the state.
+             * Abort all upload and reset all state.
              */
             abort() {
-                Alpine.store("shuttle").setState("FAILED_WITH_ERRORS");
-
-                setTimeout(() => Alpine.store("shuttle").reset(), 1500);
+                Alpine.store("shuttle").reset();
             },
 
             /**
@@ -298,7 +332,6 @@
              * @param e
              */
             unload(e) {
-                ray('unload');
                 if (Alpine.store("shuttle").state === "UPLOADING") {
                     e.preventDefault();
 
@@ -312,6 +345,10 @@
              * @param event
              */
             loadFiles(event) {
+                if (! this.checkInternetConnection()) {
+                    return;
+                }
+
                 try {
                     Array.from(event.target.files).forEach((file) => {
                         try {
@@ -322,15 +359,62 @@
                                 data: file,
                                 meta: {},
                             });
-                        } catch (error) {
-                            uppy.log(error);
+                        } catch (err) {
+                            uppy.log(err);
                         }
                     });
 
                     event.target.value = null;
                 } catch (error) {
-                    ray('load files');
-                    this.abort();
+                    console.log("An unknown error occured...");
+                }
+            },
+
+            /**
+             * Check if the user is connected to the internet.
+             *
+             * @returns {boolean}
+             */
+            checkInternetConnection() {
+                let connected = navigator.onLine;
+
+                if (! connected) {
+                    Alpine.store("shuttle").setState("CONNECTION_LOST");
+                }
+
+                return connected;
+            },
+
+            /**
+             * Attempt to upload the file once more.
+             *
+             * @param file
+             */
+            retryFileUpload(file) {
+                console.log("called");
+                try {
+                    if (Alpine.store("shuttle").files[file.id].retryAttempts >= Alpine.store("shuttle").files[file.id].maxRetryAttempts) {
+                        console.log("abort!!!");
+                        Alpine.store("shuttle").setState("FAILED_WITH_ERRORS");
+                        Alpine.store("shuttle").files[file.id].status = "error";
+
+                        setTimeout(() => this.abort(), 1500);
+
+                        return;
+                    }
+
+                    Alpine.store("shuttle").setState("RETRYING");
+                    Alpine.store("shuttle").files[file.id].status = "uploading";
+
+                    Alpine.store("shuttle").files[file.id].retryAttempts++;
+                    Alpine.store("shuttle").files[file.id].retryBackoffInterval = Alpine.store("shuttle").files[file.id].retryBackoffInterval + Alpine.store("shuttle").files[file.id].retryBackoffIncreaseInterval;
+                    console.log(Alpine.store("shuttle").files[file.id].retryAttempts);
+                    console.log(Alpine.store("shuttle").files[file.id].retryBackoffInterval);
+                    console.log(Alpine.store("shuttle").files[file.id].retryBackoffIncreaseInterval);
+
+                    setTimeout(() => this.retryFileUpload(file), Alpine.store("shuttle").files[file.id].retryBackoffInterval * 1000);
+                } catch (error) {
+                    console.log("An unknown error occured...");
                 }
             },
         }));
