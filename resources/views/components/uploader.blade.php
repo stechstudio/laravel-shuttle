@@ -180,7 +180,7 @@
                     this.loadUppyPlugins();
 
                     this.addUppyEvents();
-                } catch () {
+                } catch (error) {
                     this.abort();
                 }
             },
@@ -233,7 +233,7 @@
                                 retryBackoffInterval: {{ config(key: 'shuttle.retry.retryBackoffInterval') }},
                                 retryBackoffIncreaseInterval: {{ config(key: 'shuttle.retry.retryBackoffIncreaseInterval') }},
                             };
-                        } catch () {
+                        } catch (error) {
                             this.abort();
                         }
                     })
@@ -363,13 +363,13 @@
                                 data: file,
                                 meta: {},
                             });
-                        } catch (err) {
-                            uppy.log(err);
+                        } catch (error) {
+                            uppy.log(error);
                         }
                     });
 
                     event.target.value = null;
-                } catch () {
+                } catch (error) {
                     this.abort();
                 }
             },
@@ -412,7 +412,7 @@
                     Alpine.store("shuttle").files[file.id].retryBackoffInterval = Alpine.store("shuttle").files[file.id].retryBackoffInterval + Alpine.store("shuttle").files[file.id].retryBackoffIncreaseInterval;
 
                     setTimeout(() => this.retryFileUpload(file), Alpine.store("shuttle").files[file.id].retryBackoffInterval * 1000);
-                } catch () {
+                } catch (error) {
                     this.abort();
                 }
             },
