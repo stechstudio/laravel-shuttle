@@ -2,11 +2,11 @@
 <div class="fixed bottom-0 inset-x-0">
     <div
         x-bind:class="{
-            '{{ config('shuttle.colors.details-panel.uploading') }}': $store.shuttle.state === 'UPLOADING' || $store.shuttle.state === 'RETRYING',
-            '{{ config('shuttle.colors.details-panel.upload-success') }}': $store.shuttle.state === 'COMPLETE',
-            '{{ config('shuttle.colors.details-panel.upload-error') }}': $store.shuttle.state === 'COMPLETE_WITH_ERRORS',
-            '{{ config('shuttle.colors.details-panel.upload-error') }}': $store.shuttle.state === 'FAILED_WITH_ERRORS',
-            '{{ config('shuttle.colors.details-panel.connection-lost') }}': $store.shuttle.state === 'CONNECTION_LOST',
+            '{{ config(key: 'shuttle.colors.details-panel.uploading') }}': $store.shuttle.state === 'UPLOADING' || $store.shuttle.state === 'RETRYING',
+            '{{ config(key: 'shuttle.colors.details-panel.upload-success') }}': $store.shuttle.state === 'COMPLETE',
+            '{{ config(key: 'shuttle.colors.details-panel.upload-error') }}': $store.shuttle.state === 'COMPLETE_WITH_ERRORS',
+            '{{ config(key: 'shuttle.colors.details-panel.upload-error') }}': $store.shuttle.state === 'FAILED_WITH_ERRORS',
+            '{{ config(key: 'shuttle.colors.details-panel.connection-lost') }}': $store.shuttle.state === 'CONNECTION_LOST',
         }"
         x-show="$store.shuttle.state !== 'IDLE'"
         class="px-6 py-3 text-white font-semibold flex items-center"
@@ -41,15 +41,15 @@
             </div>
         </div>
 
-        <div class="flex-grow">
+        <div x-show="$store.shuttle.state !== 'FAILED_WITH_ERRORS'" class="flex-grow">
             <div x-bind:style="'width: ' + $store.shuttle.overallProgress + '%'" class="h-1 bg-white"></div>
         </div>
 
-        <div class="mx-4 w-12 text-right">
+        <div x-show="$store.shuttle.state !== 'FAILED_WITH_ERRORS'" class="mx-4 w-12 text-right">
             <span x-text="$store.shuttle.overallProgress + '%'" x-show="$store.shuttle.overallProgress > 0"></span>
         </div>
 
-        <div class="text-lg opacity-75 hover:opacity-100 cursor-pointer">
+        <div x-show="$store.shuttle.state !== 'FAILED_WITH_ERRORS'" class="text-lg opacity-75 hover:opacity-100 cursor-pointer">
             <!--suppress JSUnresolvedFunction -->
             <svg
                 @click="abort();"
