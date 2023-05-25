@@ -146,6 +146,8 @@
              * Reset the states of the uploader, uploads and the status bar.
              */
             reset() {
+                console.log('reset');
+
                 this.state = "IDLE";
 
                 this.uppy.reset();
@@ -172,6 +174,8 @@
             },
 
             init() {
+                console.log('init');
+
                 window.addEventListener("beforeunload", this.unload);
 
                 Alpine.store("shuttle").createUppyInstance(this.config);
@@ -244,6 +248,8 @@
                     })
 
                     .on("file-removed", (file) => {
+                        console.log('file removed');
+
                         delete Alpine.store("shuttle").files[file.id];
 
                         Alpine.store("shuttle").decrementFilesInProgressCounter();
@@ -254,11 +260,15 @@
                     })
 
                     .on("complete", (result) => {
+                        console.log('on complete');
+
                         if (result.failed.length) {
+                            console.log('complete with errors');
                             Alpine.store("shuttle").setState("COMPLETE_WITH_ERRORS");
                         }
 
                         if (Alpine.store("shuttle").filesRemaining === 0) {
+                            console.log('complete');
                             this.complete();
                         }
                     });
@@ -283,6 +293,8 @@
              * Abort all upload and reset all state.
              */
             abort() {
+                console.log('abort');
+
                 Alpine.store("shuttle").reset();
             },
 
