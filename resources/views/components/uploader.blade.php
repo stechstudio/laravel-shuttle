@@ -141,25 +141,6 @@
             toggleShowDetails(show) {
                 this.showDetails = show;
             },
-
-            /**
-             * Reset the states of the uploader, uploads and the status bar.
-             */
-            reset() {
-                console.log('reset');
-
-                this.state = "IDLE";
-
-                this.uppy.reset();
-
-                this.files = {};
-
-                this.overallProgress = 0;
-                this.filesUploaded = 0;
-                this.filesInProgress = 0;
-
-                this.showDetails = false;
-            },
         });
 
         Alpine.data("shuttle", () => ({
@@ -248,54 +229,18 @@
                     })
 
                     .on("file-removed", (file) => {
-                        console.log('file removed');
-
                         delete Alpine.store("shuttle").files[file.id];
 
                         Alpine.store("shuttle").decrementFilesInProgressCounter();
-
-                        if (Alpine.store("shuttle").uppy.getFiles().length === 0) {
-                            this.abort();
-                        }
                     })
 
                     .on("complete", (result) => {
-                        console.log('on complete');
-
-                        if (result.failed.length) {
-                            console.log('complete with errors');
-                            Alpine.store("shuttle").setState("COMPLETE_WITH_ERRORS");
-                        }
+                        Alpine.store("shuttle").setState("COMPLETE");
 
                         if (Alpine.store("shuttle").filesRemaining === 0) {
-                            console.log('complete');
-                            this.complete();
+                            setTimeout(() => this.abort(), 1500);
                         }
                     });
-            },
-
-            /**
-             * This method is fired once all file uploads are complete.
-             */
-            complete() {
-                if (Alpine.store("shuttle").filesRemaining !== 0) {
-                    return;
-                }
-
-                Alpine.store("shuttle").setState("COMPLETE");
-
-                setTimeout(() => {
-                    Alpine.store("shuttle").reset();
-                }, 800);
-            },
-
-            /**
-             * Abort all upload and reset all state.
-             */
-            abort() {
-                console.log('abort');
-
-                Alpine.store("shuttle").reset();
             },
 
             /**
@@ -328,6 +273,24 @@
                 });
 
                 event.target.value = null;
+            },
+
+            /**
+             * Abort.
+             */
+            abort() {
+                console.log('abort');
+
+                this.files = {};
+
+                this.overallProgress = 0;
+                this.filesUploaded = 0;
+                this.filesInProgress = 0;
+
+                Alpine.store("shuttle").setState("IDLE");
+                Alpine.store("shuttle").uppy.reset();
+
+                this.showDetails = false;
             },
 
             /**
