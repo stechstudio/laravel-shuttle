@@ -10,22 +10,22 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (Schema::hasTable('uploads')) {
+        if (Schema::hasTable(table: 'uploads')) {
             return;
         }
 
         Schema::create(table: 'uploads', callback: function (Blueprint $table) {
             $table->id();
             $table->char('uuid', 36)->unique();
-            $table->string('key')->index();
-            $table->foreignId('user_id')->constrained();
-            $table->morphs('owner');
-            $table->string('name');
-            $table->string('extension');
-            $table->string('type');
-            $table->unsignedBigInteger('size');
+            $table->string(column: 'key')->index();
+            $table->foreignId(column: 'user_id')->constrained();
+            $table->morphs(name: 'owner');
+            $table->string(column: 'name');
+            $table->string(column: 'extension');
+            $table->string(column: 'type');
+            $table->unsignedBigInteger(column: 'size');
             $table->timestamps();
-            $table->timestamp('completed_at')->nullable();
+            $table->timestamp(column: 'completed_at')->nullable();
         });
     }
 };

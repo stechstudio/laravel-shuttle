@@ -60,8 +60,8 @@
 
             <!--suppress JSUnresolvedFunction -->
             <svg
+                x-show="state !== 'IDLE' && state !== 'FAILED_WITH_ERRORS' && ! showDetails"
                 @click="setShowDetails(! showDetails);"
-                x-show="state !== 'FAILED_WITH_ERRORS' && ! showDetails"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -72,8 +72,8 @@
 
             <!--suppress JSUnresolvedFunction -->
             <svg
+                x-show="state !== 'IDLE' && state !== 'FAILED_WITH_ERRORS' && showDetails"
                 @click="setShowDetails(! showDetails);"
-                x-show="state !== 'FAILED_WITH_ERRORS' && showDetails"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"

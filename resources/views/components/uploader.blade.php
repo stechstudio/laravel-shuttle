@@ -57,8 +57,6 @@
             },
 
             init() {
-                console.log('init');
-
                 window.addEventListener("beforeunload", this.unload);
 
                 this.createUppyInstance(this.config);
@@ -110,6 +108,7 @@
                     .on("upload-progress", (file, progress) => {
                         this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
                         this.files[file.id].status = "uploading";
+
                         this.setState("UPLOADING");
                     })
 
@@ -118,9 +117,10 @@
                     })
 
                     .on("upload-success", (file) => {
+                        this.files[file.id].status = "complete";
+
                         this.incrementFilesUploadedCounter();
                         this.decrementFilesInProgressCounter();
-                        this.files[file.id].status = "complete";
 
                         @this.
                         render();
@@ -139,9 +139,7 @@
                     .on("complete", (result) => {
                         this.setState("COMPLETE");
 
-                        if (this.filesRemaining === 0) {
-                            setTimeout(() => this.abort(), 1500);
-                        }
+                        this.abort();
                     });
             },
 
@@ -164,6 +162,10 @@
              * @param event
              */
             loadFiles(event) {
+                if (this.overallProgress === 100) {
+                    return;
+                }
+
                 Array.from(event.target.files).forEach((file) => {
                     this.uppy.addFile({
                         source: "file input",
@@ -181,17 +183,18 @@
              * Abort.
              */
             abort() {
-                console.log('abort');
-
                 this.files = {};
 
                 this.overallProgress = 0;
                 this.filesUploaded = 0;
                 this.filesInProgress = 0;
 
-                this.setState("IDLE");
-                this.setShowDetails(false);
-                this.uppy.reset();
+                setTimeout(() => {
+                    this.setState("IDLE");
+                    this.setShowDetails(false);
+
+                    this.uppy.reset();
+                }, 1000);
             },
 
             /**
