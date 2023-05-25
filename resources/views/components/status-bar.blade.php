@@ -14,26 +14,22 @@
     >
         <div class="mr-4">
             <div x-show="$store.shuttle.state === 'UPLOADING' && $store.shuttle.overallProgress === 0">
-                {{ trans(key: 'shuttle::shuttle.preparing') }}
-            </div>
-
-            <div x-show="$store.shuttle.state === 'RETRYING' && $store.shuttle.overallProgress === 0">
-                {{ trans(key: 'shuttle::shuttle.retrying') }}
+                @lang('shuttle::shuttle.preparing')
             </div>
 
             <div x-show="($store.shuttle.state === 'UPLOADING' || $store.shuttle.state === 'CONNECTION_LOST') && $store.shuttle.overallProgress > 0">
-                <span x-show="$store.shuttle.state === 'CONNECTION_LOST'">{{ trans(key: 'shuttle::shuttle.connection_lost') }}</span>
+                <span x-show="$store.shuttle.state === 'CONNECTION_LOST'">@lang('shuttle::shuttle.connection_lost')</span>
 
                 <!--suppress JSUnresolvedFunction -->
-                <span x-text="$store.shuttle.filesRemaining"></span> {{ trans(key: 'shuttle::shuttle.remaining') }}
+                <span x-text="$store.shuttle.filesRemaining"></span> @lang('shuttle::shuttle.remaining')
             </div>
 
             <div x-show="$store.shuttle.state === 'COMPLETE'">
-                {{ trans(key: 'shuttle::shuttle.finished_successfully') }}
+                @lang('shuttle::shuttle.finished_successfully')
             </div>
 
             <div x-show="$store.shuttle.state === 'COMPLETE_WITH_ERRORS'">
-                {{ trans(key: 'shuttle::shuttle.finished_with_errors') }}
+                @lang('shuttle::shuttle.finished_with_errors')
             </div>
 
             <div x-show="$store.shuttle.state === 'FAILED_WITH_ERRORS'">
