@@ -15,8 +15,7 @@
 
 <!--suppress JSUnresolvedVariable -->
 <div
-    x-title="shuttle"
-    x-data="shuttle"
+    x-data="Shuttle"
     x-on:select-files.window="document.querySelector('.uppy-trigger').click(); if ('activeElement' in document) document.activeElement.blur();"
 >
     <div wire:ignore class="absolute inset-x-0 bottom-0 z-50">
@@ -30,12 +29,16 @@
 <!--suppress ES6ShorthandObjectProperty, JSUnresolvedVariable, JSUnresolvedFunction, JSCheckFunctionSignatures -->
 <script>
     document.addEventListener("alpine:init", () => {
-        Alpine.store("shuttle", {
+        Alpine.data("Shuttle", () => ({
+            newConfig: '{{ $config }}',
+
             debug: false,
 
             uppy: null,
 
             state: "IDLE",
+
+            showDetails: false,
 
             overallProgress: 0,
 
@@ -45,7 +48,166 @@
 
             filesInProgress: 0,
 
-            showDetails: false,
+            config: {
+                baseUrl: '{{ Shuttle::baseUrl() }}',
+
+                context: @entangle('uploadContext'),
+
+                dropTarget: '{{ $dropTarget }}',
+            },
+
+            init() {
+                console.log('init');
+
+                window.addEventListener("beforeunload", this.unload);
+
+                this.createUppyInstance(this.config);
+
+                this.loadUppyPlugins();
+
+                this.addUppyEvents();
+            },
+
+            /**
+             * Load the Uppy plugins.
+             */
+            loadUppyPlugins() {
+                this.uppy
+                    .use(UppyDropTarget, {
+                        target: document.querySelector(this.config.dropTarget),
+                    })
+                    .use(AwsS3Multipart, {
+                        limit: 300,
+                        companionUrl: this.config.baseUrl,
+                        companionHeaders: {
+                            "X-CSRF-Token": "xxx",
+                        },
+                    });
+            },
+
+            /**
+             * Add the Uppy events.
+             */
+            addUppyEvents() {
+                this.uppy
+                    .on("file-added", (file) => {
+                        this.setState("UPLOADING");
+                        this.incrementFilesInProgressCounter();
+
+                        this.files[file.id] = {
+                            id: file.id,
+                            name: file.name,
+                            size: file.size,
+                            progress: 0,
+                            status: "uploading",
+                            retryAttempts: 0,
+                            maxRetryAttempts: {{ config(key: 'shuttle.retry.maxRetryAttempts') }},
+                            retryBackoffInterval: {{ config(key: 'shuttle.retry.retryBackoffInterval') }},
+                            retryBackoffIncreaseInterval: {{ config(key: 'shuttle.retry.retryBackoffIncreaseInterval') }},
+                        };
+                    })
+
+                    .on("upload-progress", (file, progress) => {
+                        this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
+                        this.files[file.id].status = "uploading";
+                        this.setState("UPLOADING");
+                    })
+
+                    .on("progress", (progress) => {
+                        this.setOverallProgress(progress);
+                    })
+
+                    .on("upload-success", (file) => {
+                        this.incrementFilesUploadedCounter();
+                        this.decrementFilesInProgressCounter();
+                        this.files[file.id].status = "complete";
+
+                        @this.
+                        render();
+                    })
+
+                    .on("upload-error", (file) => {
+                        // handle the errors...
+                    })
+
+                    .on("file-removed", (file) => {
+                        delete this.files[file.id];
+
+                        this.decrementFilesInProgressCounter();
+                    })
+
+                    .on("complete", (result) => {
+                        this.setState("COMPLETE");
+
+                        if (this.filesRemaining === 0) {
+                            setTimeout(() => this.abort(), 1500);
+                        }
+                    });
+            },
+
+            /**
+             * Unload the file.
+             *
+             * @param e
+             */
+            unload(e) {
+                if (this.state === "UPLOADING") {
+                    e.preventDefault();
+
+                    e.returnValue = '{{ trans(key: 'shuttle::shuttle.are_you_sure') }}';
+                }
+            },
+
+            /**
+             * Prepare loading the files for upload.
+             *
+             * @param event
+             */
+            loadFiles(event) {
+                Array.from(event.target.files).forEach((file) => {
+                    this.uppy.addFile({
+                        source: "file input",
+                        name: file.name,
+                        type: file.type,
+                        data: file,
+                        meta: {},
+                    });
+                });
+
+                event.target.value = null;
+            },
+
+            /**
+             * Abort.
+             */
+            abort() {
+                console.log('abort');
+
+                this.files = {};
+
+                this.overallProgress = 0;
+                this.filesUploaded = 0;
+                this.filesInProgress = 0;
+
+                this.setState("IDLE");
+                this.setShowDetails(false);
+                this.uppy.reset();
+            },
+
+            /**
+             * Check if the user is connected to the internet.
+             *
+             * @returns {boolean}
+             */
+            checkInternetConnection() {
+                let connected = navigator.onLine;
+
+                if (! connected) {
+                    this.setState("CONNECTION_LOST");
+                }
+
+                return connected;
+            },
 
             get filesRemaining() {
                 return Math.max(0, this.filesInProgress);
@@ -72,12 +234,21 @@
             },
 
             /**
-             * Set the state.
+             * Set state.
              *
-             * @param state
+             * @param value
              */
-            setState(state) {
-                this.state = state;
+            setState(value) {
+                this.state = value;
+            },
+
+            /**
+             * Set show details.
+             *
+             * @param value
+             */
+            setShowDetails(value) {
+                this.showDetails = value;
             },
 
             /**
@@ -131,181 +302,6 @@
              */
             setFilesInProgress(filesInProgress) {
                 this.filesInProgress = filesInProgress;
-            },
-
-            /**
-             * Toggle the show details panel.
-             *
-             * @param show
-             */
-            toggleShowDetails(show) {
-                this.showDetails = show;
-            },
-        });
-
-        Alpine.data("shuttle", () => ({
-            newConfig: '{{ $config }}',
-
-            config: {
-                baseUrl: '{{ Shuttle::baseUrl() }}',
-
-                context: @entangle('uploadContext'),
-
-                dropTarget: '{{ $dropTarget }}',
-            },
-
-            init() {
-                console.log('init');
-
-                window.addEventListener("beforeunload", this.unload);
-
-                Alpine.store("shuttle").createUppyInstance(this.config);
-
-                this.loadUppyPlugins();
-
-                this.addUppyEvents();
-            },
-
-            /**
-             * Load the Uppy plugins.
-             */
-            loadUppyPlugins() {
-                Alpine.store("shuttle").uppy
-                    .use(UppyDropTarget, {
-                        target: document.querySelector(this.config.dropTarget),
-                    })
-                    .use(AwsS3Multipart, {
-                        limit: 300,
-                        companionUrl: this.config.baseUrl,
-                        companionHeaders: {
-                            "X-CSRF-Token": "xxx",
-                        },
-                    });
-            },
-
-            /**
-             * Add the Uppy events.
-             */
-            addUppyEvents() {
-                Alpine.store("shuttle").uppy
-                    .on("file-added", (file) => {
-                        Alpine.store("shuttle").setState("UPLOADING");
-                        Alpine.store("shuttle").incrementFilesInProgressCounter();
-
-                        Alpine.store("shuttle").files[file.id] = {
-                            id: file.id,
-                            name: file.name,
-                            size: file.size,
-                            progress: 0,
-                            status: "uploading",
-                            retryAttempts: 0,
-                            maxRetryAttempts: {{ config(key: 'shuttle.retry.maxRetryAttempts') }},
-                            retryBackoffInterval: {{ config(key: 'shuttle.retry.retryBackoffInterval') }},
-                            retryBackoffIncreaseInterval: {{ config(key: 'shuttle.retry.retryBackoffIncreaseInterval') }},
-                        };
-                    })
-
-                    .on("upload-progress", (file, progress) => {
-                        Alpine.store("shuttle").files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
-                        Alpine.store("shuttle").files[file.id].status = "uploading";
-                        Alpine.store("shuttle").setState("UPLOADING");
-                    })
-
-                    .on("progress", (progress) => {
-                        Alpine.store("shuttle").setOverallProgress(progress);
-                    })
-
-                    .on("upload-success", (file) => {
-                        Alpine.store("shuttle").incrementFilesUploadedCounter();
-                        Alpine.store("shuttle").decrementFilesInProgressCounter();
-                        Alpine.store("shuttle").files[file.id].status = "complete";
-
-                        @this.
-                        render();
-                    })
-
-                    .on("upload-error", (file) => {
-                        // handle the errors...
-                    })
-
-                    .on("file-removed", (file) => {
-                        delete Alpine.store("shuttle").files[file.id];
-
-                        Alpine.store("shuttle").decrementFilesInProgressCounter();
-                    })
-
-                    .on("complete", (result) => {
-                        Alpine.store("shuttle").setState("COMPLETE");
-
-                        if (Alpine.store("shuttle").filesRemaining === 0) {
-                            setTimeout(() => this.abort(), 1500);
-                        }
-                    });
-            },
-
-            /**
-             * Unload the file.
-             *
-             * @param e
-             */
-            unload(e) {
-                if (Alpine.store("shuttle").state === "UPLOADING") {
-                    e.preventDefault();
-
-                    e.returnValue = '{{ trans(key: 'shuttle::shuttle.are_you_sure') }}';
-                }
-            },
-
-            /**
-             * Prepare loading the files for upload.
-             *
-             * @param event
-             */
-            loadFiles(event) {
-                Array.from(event.target.files).forEach((file) => {
-                    Alpine.store("shuttle").uppy.addFile({
-                        source: "file input",
-                        name: file.name,
-                        type: file.type,
-                        data: file,
-                        meta: {},
-                    });
-                });
-
-                event.target.value = null;
-            },
-
-            /**
-             * Abort.
-             */
-            abort() {
-                console.log('abort');
-
-                this.files = {};
-
-                this.overallProgress = 0;
-                this.filesUploaded = 0;
-                this.filesInProgress = 0;
-
-                Alpine.store("shuttle").setState("IDLE");
-                Alpine.store("shuttle").uppy.reset();
-
-                this.showDetails = false;
-            },
-
-            /**
-             * Check if the user is connected to the internet.
-             *
-             * @returns {boolean}
-             */
-            checkInternetConnection() {
-                let connected = navigator.onLine;
-
-                if (! connected) {
-                    Alpine.store("shuttle").setState("CONNECTION_LOST");
-                }
-
-                return connected;
             },
         }));
     });

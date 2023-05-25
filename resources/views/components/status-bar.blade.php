@@ -2,54 +2,54 @@
 <div class="fixed bottom-0 inset-x-0">
     <div
         x-bind:class="{
-            '{{ config('shuttle.colors.details-panel.uploading') }}': $store.shuttle.state === 'UPLOADING' || $store.shuttle.state === 'RETRYING',
-            '{{ config('shuttle.colors.details-panel.upload-success') }}': $store.shuttle.state === 'COMPLETE',
-            '{{ config('shuttle.colors.details-panel.upload-error') }}': $store.shuttle.state === 'COMPLETE_WITH_ERRORS',
-            '{{ config('shuttle.colors.details-panel.upload-error') }}': $store.shuttle.state === 'FAILED_WITH_ERRORS',
-            '{{ config('shuttle.colors.details-panel.connection-lost') }}': $store.shuttle.state === 'CONNECTION_LOST',
+            '{{ config('shuttle.colors.details-panel.uploading') }}': state === 'UPLOADING' || state === 'RETRYING',
+            '{{ config('shuttle.colors.details-panel.upload-success') }}': state === 'COMPLETE',
+            '{{ config('shuttle.colors.details-panel.upload-error') }}': state === 'COMPLETE_WITH_ERRORS',
+            '{{ config('shuttle.colors.details-panel.upload-error') }}': state === 'FAILED_WITH_ERRORS',
+            '{{ config('shuttle.colors.details-panel.connection-lost') }}': state === 'CONNECTION_LOST',
         }"
-        x-show="$store.shuttle.state !== 'IDLE'"
+        x-show="state !== 'IDLE'"
         class="px-6 py-3 text-white font-semibold flex items-center"
         style="display: none;"
     >
         <div class="mr-4">
-            <div x-show="$store.shuttle.state === 'UPLOADING' && $store.shuttle.overallProgress === 0">
+            <div x-show="state === 'UPLOADING' && overallProgress === 0">
                 @lang('shuttle::shuttle.preparing')
             </div>
 
-            <div x-show="($store.shuttle.state === 'UPLOADING' || $store.shuttle.state === 'CONNECTION_LOST') && $store.shuttle.overallProgress > 0">
-                <span x-show="$store.shuttle.state === 'CONNECTION_LOST'">@lang('shuttle::shuttle.connection_lost')</span>
+            <div x-show="(state === 'UPLOADING' || state === 'CONNECTION_LOST') && overallProgress > 0">
+                <span x-show="state === 'CONNECTION_LOST'">@lang('shuttle::shuttle.connection_lost')</span>
 
                 <!--suppress JSUnresolvedFunction -->
-                <span x-text="$store.shuttle.filesRemaining"></span> @lang('shuttle::shuttle.remaining')
+                <span x-text="filesRemaining"></span> @lang('shuttle::shuttle.remaining')
             </div>
 
-            <div x-show="$store.shuttle.state === 'COMPLETE'">
+            <div x-show="state === 'COMPLETE'">
                 @lang('shuttle::shuttle.finished_successfully')
             </div>
 
-            <div x-show="$store.shuttle.state === 'COMPLETE_WITH_ERRORS'">
+            <div x-show="state === 'COMPLETE_WITH_ERRORS'">
                 @lang('shuttle::shuttle.finished_with_errors')
             </div>
 
-            <div x-show="$store.shuttle.state === 'FAILED_WITH_ERRORS'">
+            <div x-show="state === 'FAILED_WITH_ERRORS'">
                 @lang('Something went wrong...')
             </div>
         </div>
 
         <div class="flex-grow">
-            <div x-bind:style="'width: ' + $store.shuttle.overallProgress + '%'" class="h-1 bg-white"></div>
+            <div x-bind:style="'width: ' + overallProgress + '%'" class="h-1 bg-white"></div>
         </div>
 
         <div class="mx-4 w-12 text-right">
-            <span x-text="$store.shuttle.overallProgress + '%'" x-show="$store.shuttle.overallProgress > 0"></span>
+            <span x-text="overallProgress + '%'" x-show="overallProgress > 0"></span>
         </div>
 
         <div class="text-lg opacity-75 hover:opacity-100 cursor-pointer">
             <!--suppress JSUnresolvedFunction -->
             <svg
                 @click="abort();"
-                x-show="$store.shuttle.state === 'FAILED_WITH_ERRORS'"
+                x-show="state === 'FAILED_WITH_ERRORS'"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -60,8 +60,8 @@
 
             <!--suppress JSUnresolvedFunction -->
             <svg
-                @click="$store.shuttle.toggleShowDetails(! $store.shuttle.showDetails);"
-                x-show="$store.shuttle.state !== 'FAILED_WITH_ERRORS' && ! $store.shuttle.showDetails"
+                @click="setShowDetails(! showDetails);"
+                x-show="state !== 'FAILED_WITH_ERRORS' && ! showDetails"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -72,8 +72,8 @@
 
             <!--suppress JSUnresolvedFunction -->
             <svg
-                @click="$store.shuttle.toggleShowDetails(! $store.shuttle.showDetails);"
-                x-show="$store.shuttle.state !== 'FAILED_WITH_ERRORS' && $store.shuttle.showDetails"
+                @click="setShowDetails(! showDetails);"
+                x-show="state !== 'FAILED_WITH_ERRORS' && showDetails"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -84,7 +84,7 @@
         </div>
     </div>
 
-    <div x-cloak x-show="$store.shuttle.state !== 'IDLE'">
+    <div x-cloak x-show="state !== 'IDLE'">
         <x-shuttle::uploads />
     </div>
 </div>
