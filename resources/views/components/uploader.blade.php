@@ -90,6 +90,7 @@
                 this.uppy
                     .on("file-added", (file) => {
                         this.setState("UPLOADING");
+
                         this.incrementFilesInProgressCounter();
 
                         this.files[file.id] = {
@@ -98,18 +99,11 @@
                             size: file.size,
                             progress: 0,
                             status: "uploading",
-                            retryAttempts: 0,
-                            maxRetryAttempts: {{ config(key: 'shuttle.retry.maxRetryAttempts') }},
-                            retryBackoffInterval: {{ config(key: 'shuttle.retry.retryBackoffInterval') }},
-                            retryBackoffIncreaseInterval: {{ config(key: 'shuttle.retry.retryBackoffIncreaseInterval') }},
                         };
                     })
 
                     .on("upload-progress", (file, progress) => {
                         this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
-                        this.files[file.id].status = "uploading";
-
-                        this.setState("UPLOADING");
                     })
 
                     .on("progress", (progress) => {
@@ -132,8 +126,6 @@
 
                     .on("file-removed", (file) => {
                         delete this.files[file.id];
-
-                        this.decrementFilesInProgressCounter();
                     })
 
                     .on("complete", (result) => {
@@ -183,18 +175,10 @@
              * Abort.
              */
             abort() {
-                this.files = {};
+                this.setState("IDLE");
+                this.setShowDetails(false);
 
-                this.overallProgress = 0;
-                this.filesUploaded = 0;
-                this.filesInProgress = 0;
-
-                setTimeout(() => {
-                    this.setState("IDLE");
-                    this.setShowDetails(false);
-
-                    this.uppy.reset();
-                }, 1000);
+                this.uppy.reset();
             },
 
             /**
