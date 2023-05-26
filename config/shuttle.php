@@ -31,7 +31,6 @@ return [
      * at run time.
      */
     'colors'     => [
-
         'details-panel' => [
             'uploading' => env(key: 'DETAILS_PANEL_UPLOADING', default: 'bg-blue-500'),
 
@@ -41,17 +40,6 @@ return [
 
             'connection-lost' => env(key: 'DETAILS_PANEL_CONNECTION_LOST', default: 'bg-gray-500'),
         ],
-
-    ],
-
-    'retry' => [
-
-        'maxRetryAttempts' => 3,
-
-        'retryBackoffInterval' => 1,
-
-        'retryBackoffIncreaseInterval' => 1,
-
     ],
 
 ];

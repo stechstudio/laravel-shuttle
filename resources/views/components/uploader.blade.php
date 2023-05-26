@@ -103,11 +103,17 @@
                     })
 
                     .on("upload-progress", (file, progress) => {
-                        this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
+                        if (this.checkInternetConnection()) {
+                            this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
+                        }
                     })
 
                     .on("progress", (progress) => {
-                        this.setOverallProgress(progress);
+                        this.setState('UPLOADING');
+
+                        if (this.checkInternetConnection()) {
+                            this.setOverallProgress(progress);
+                        }
                     })
 
                     .on("upload-success", (file) => {
@@ -122,6 +128,7 @@
 
                     .on("upload-error", (file) => {
                         // handle the errors...
+                        this.setState('CONNECTION_LOST');
                     })
 
                     .on("file-removed", (file) => {
@@ -129,9 +136,9 @@
                     })
 
                     .on("complete", (result) => {
-                        this.setState("COMPLETE");
-
-                        this.abort();
+                        if (this.filesInProgress === 0) {
+                            this.abort();
+                        }
                     });
             },
 
@@ -141,11 +148,9 @@
              * @param e
              */
             unload(e) {
-                if (this.state === "UPLOADING") {
-                    e.preventDefault();
+                e.preventDefault();
 
-                    e.returnValue = '{{ trans(key: 'shuttle::shuttle.are_you_sure') }}';
-                }
+                e.returnValue = '{{ trans(key: 'shuttle::shuttle.are_you_sure') }}';
             },
 
             /**
@@ -154,10 +159,6 @@
              * @param event
              */
             loadFiles(event) {
-                if (this.overallProgress === 100) {
-                    return;
-                }
-
                 Array.from(event.target.files).forEach((file) => {
                     this.uppy.addFile({
                         source: "file input",
@@ -175,10 +176,14 @@
              * Abort.
              */
             abort() {
-                this.setState("IDLE");
+                this.setState("COMPLETE");
                 this.setShowDetails(false);
 
                 this.uppy.reset();
+
+                setTimeout(() => {
+                    this.setState("IDLE");
+                }, 1000);
             },
 
             /**

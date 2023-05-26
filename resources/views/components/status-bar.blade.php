@@ -2,11 +2,11 @@
 <div class="fixed bottom-0 inset-x-0">
     <div
         x-bind:class="{
-            '{{ config('shuttle.colors.details-panel.uploading') }}': state === 'UPLOADING' || state === 'RETRYING',
-            '{{ config('shuttle.colors.details-panel.upload-success') }}': state === 'COMPLETE',
-            '{{ config('shuttle.colors.details-panel.upload-error') }}': state === 'COMPLETE_WITH_ERRORS',
-            '{{ config('shuttle.colors.details-panel.upload-error') }}': state === 'FAILED_WITH_ERRORS',
-            '{{ config('shuttle.colors.details-panel.connection-lost') }}': state === 'CONNECTION_LOST',
+            '{{ config(key: 'shuttle.colors.details-panel.uploading') }}': state === 'UPLOADING',
+            '{{ config(key: 'shuttle.colors.details-panel.upload-success') }}': state === 'COMPLETE',
+            '{{ config(key: 'shuttle.colors.details-panel.upload-error') }}': state === 'COMPLETE_WITH_ERRORS',
+            '{{ config(key: 'shuttle.colors.details-panel.upload-error') }}': state === 'FAILED_WITH_ERRORS',
+            '{{ config(key: 'shuttle.colors.details-panel.connection-lost') }}': state === 'CONNECTION_LOST',
         }"
         x-show="state !== 'IDLE'"
         class="px-6 py-3 text-white font-semibold flex items-center"
@@ -21,7 +21,7 @@
                 <span x-show="state === 'CONNECTION_LOST'">@lang('shuttle::shuttle.connection_lost')</span>
 
                 <!--suppress JSUnresolvedFunction -->
-                <span x-text="filesRemaining"></span> @lang('shuttle::shuttle.remaining')
+                <span x-show="state === 'UPLOADING'" x-text="filesRemaining"></span> @lang('shuttle::shuttle.remaining')
             </div>
 
             <div x-show="state === 'COMPLETE'">
@@ -60,7 +60,7 @@
 
             <!--suppress JSUnresolvedFunction -->
             <svg
-                x-show="state !== 'IDLE' && state !== 'FAILED_WITH_ERRORS' && ! showDetails"
+                x-show="state !== 'IDLE' && state !== 'COMPLETE' && state !== 'FAILED_WITH_ERRORS' && ! showDetails"
                 @click="setShowDetails(! showDetails);"
                 viewBox="0 0 24 24"
                 fill="none"
@@ -72,7 +72,7 @@
 
             <!--suppress JSUnresolvedFunction -->
             <svg
-                x-show="state !== 'IDLE' && state !== 'FAILED_WITH_ERRORS' && showDetails"
+                x-show="state !== 'IDLE' && state !== 'COMPLETE' && state !== 'FAILED_WITH_ERRORS' && showDetails"
                 @click="setShowDetails(! showDetails);"
                 viewBox="0 0 24 24"
                 fill="none"
