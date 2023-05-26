@@ -181,7 +181,7 @@
              * Abort all uploads.
              */
             abort() {
-                this.setState("COMPLETE");
+                this.setState("SUCCESS");
                 this.setShowDetails(false);
 
                 this.uppy.reset();

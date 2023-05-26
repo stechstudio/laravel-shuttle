@@ -1,88 +1,28 @@
-<!--suppress JSDuplicatedDeclaration, JSUnresolvedVariable -->
 <div class="fixed bottom-0 inset-x-0">
     <div
         x-bind:class="{
             '{{ config(key: 'shuttle.colors.details-panel.uploading') }}': hasInternetConnection && state === 'UPLOADING',
-            '{{ config(key: 'shuttle.colors.details-panel.upload-success') }}': state === 'COMPLETE',
-            '{{ config(key: 'shuttle.colors.details-panel.upload-error') }}': state === 'COMPLETE_WITH_ERRORS',
-            '{{ config(key: 'shuttle.colors.details-panel.upload-error') }}': state === 'FAILED_WITH_ERRORS',
-            '{{ config(key: 'shuttle.colors.details-panel.connection-lost') }}': ! hasInternetConnection || state === 'CONNECTION_LOST',
+            '{{ config(key: 'shuttle.colors.details-panel.success') }}': state === 'SUCCESS',
+            '{{ config(key: 'shuttle.colors.details-panel.error') }}': state === 'ERROR',
+            '{{ config(key: 'shuttle.colors.details-panel.connection-lost') }}': ! hasInternetConnection,
         }"
         x-show="state !== 'IDLE'"
         class="px-6 py-3 text-white font-semibold flex items-center"
         style="display: none;"
     >
         <div class="mr-4">
-            <div x-show="hasInternetConnection && state === 'UPLOADING' && overallProgress === 0">
-                @lang('shuttle::shuttle.preparing')
-            </div>
+            <x-shuttle::states.preparing />
 
-            <div>
-                <span x-show="! hasInternetConnection">@lang('shuttle::shuttle.connection_lost')</span>
+            <x-shuttle::states.uploading />
 
-                <!--suppress JSUnresolvedFunction -->
-                <span x-show="hasInternetConnection && state === 'UPLOADING'" x-text="filesRemaining">
-                    @lang('shuttle::shuttle.remaining')
-                </span>
-            </div>
+            <x-shuttle::states.success />
 
-            <div x-show="state === 'COMPLETE'">
-                @lang('shuttle::shuttle.finished_successfully')
-            </div>
+            <x-shuttle::states.error />
 
-            <div x-show="state === 'COMPLETE_WITH_ERRORS'">
-                @lang('shuttle::shuttle.finished_with_errors')
-            </div>
-
-            <div x-show="state === 'FAILED_WITH_ERRORS'">
-                @lang('Something went wrong...')
-            </div>
+            <x-shuttle::states.connection-lost />
         </div>
 
-        <div x-show="hasInternetConnection" class="flex-grow">
-            <div x-show="state === 'CONNECTION_LOST'" x-bind:style="'width: ' + overallProgress + '%'" class="h-1 bg-white"></div>
-        </div>
-
-        <div x-show="hasInternetConnection" class="mx-4 w-12 text-right">
-            <span x-text="overallProgress + '%'" x-show="overallProgress > 0"></span>
-        </div>
-
-        <div x-show="hasInternetConnection" class="text-lg opacity-75 hover:opacity-100 cursor-pointer">
-            <!--suppress JSUnresolvedFunction -->
-            <svg
-                x-show="state === 'FAILED_WITH_ERRORS'"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                class="w-6 h-6"
-            >
-                <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
-
-            <!--suppress JSUnresolvedFunction -->
-            <svg
-                x-show="state !== 'IDLE' && state !== 'COMPLETE' && state !== 'FAILED_WITH_ERRORS' && ! showDetails"
-                @click="setShowDetails(! showDetails);"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                class="w-6 h-6"
-            >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11l7-7 7 7M5 19l7-7 7 7"></path>
-            </svg>
-
-            <!--suppress JSUnresolvedFunction -->
-            <svg
-                x-show="state !== 'IDLE' && state !== 'COMPLETE' && state !== 'FAILED_WITH_ERRORS' && showDetails"
-                @click="setShowDetails(! showDetails);"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                class="w-6 h-6"
-            >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13l-7 7-7-7m14-8l-7 7-7-7"></path>
-            </svg>
-        </div>
+        <x-shuttle::progress-bar />
     </div>
 
     <div x-cloak x-show="state !== 'IDLE'">
