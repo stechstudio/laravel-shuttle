@@ -1,3 +1,3 @@
 <div x-show="state === 'SUCCESS'">
-    @lang('shuttle::shuttle.finished_successfully')
+    @lang('shuttle::shuttle.success')
 </div>

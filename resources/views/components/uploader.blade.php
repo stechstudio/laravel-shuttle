@@ -9,7 +9,7 @@
     <div class="text-2xl xl:text-4xl text-white font-bold flex flex-col items-center">
         <x-shuttle::drop-icon viewBox="0 0 20 20" fill="currentColor" class="w-32 h-32 opacity-50 mb-3" />
 
-        <div>{{ trans(key: 'shuttle::shuttle.drop_files') }}</div>
+        <div>@lang('shuttle::shuttle.drop_files')</div>
     </div>
 </div>
 
@@ -116,8 +116,6 @@
                     })
 
                     .on("progress", (progress) => {
-                        this.setState('UPLOADING');
-
                         this.setOverallProgress(progress);
                     })
 
@@ -127,8 +125,7 @@
                         this.incrementFilesUploadedCounter();
                         this.decrementFilesInProgressCounter();
 
-                        @this.
-                        render();
+                    @this.render();
                     })
 
                     .on("upload-error", (file) => {

@@ -1,4 +1,6 @@
 <div class="fixed bottom-0 inset-x-0">
+    <span x-text="state" class="bg-yellow-400 text-4xl"></span>
+    
     <div
         x-bind:class="{
             '{{ config(key: 'shuttle.colors.details-panel.uploading') }}': hasInternetConnection && state === 'UPLOADING',
