@@ -109,8 +109,6 @@
                     })
 
                     .on("progress", (progress) => {
-                        this.setState('UPLOADING');
-
                         if (this.checkInternetConnection()) {
                             this.setOverallProgress(progress);
                         }
