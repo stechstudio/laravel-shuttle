@@ -103,15 +103,11 @@
                     })
 
                     .on("upload-progress", (file, progress) => {
-                        if (this.checkInternetConnection()) {
-                            this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
-                        }
+                        this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
                     })
 
                     .on("progress", (progress) => {
-                        if (this.checkInternetConnection()) {
-                            this.setOverallProgress(progress);
-                        }
+                        this.setOverallProgress(progress);
                     })
 
                     .on("upload-success", (file) => {
