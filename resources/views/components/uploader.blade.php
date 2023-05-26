@@ -60,10 +60,19 @@
                 window.addEventListener("beforeunload", this.unload);
 
                 this.createUppyInstance(this.config);
-
                 this.loadUppyPlugins();
 
-                this.addUppyEvents();
+                if (! this.hasInternetConnection) {
+                    this.setState('CONNECTION_LOST');
+
+                    return;
+                }
+
+                try {
+                    this.addUppyEvents();
+                } catch (error) {
+                    alert('Something went wrong');
+                }
             },
 
             /**
@@ -107,6 +116,8 @@
                     })
 
                     .on("progress", (progress) => {
+                        this.setState('UPLOADING');
+
                         this.setOverallProgress(progress);
                     })
 
@@ -122,7 +133,7 @@
 
                     .on("upload-error", (file) => {
                         // handle the errors...
-                        this.setState('CONNECTION_LOST');
+                        this.uppy.retryUpload(file.id).then()
                     })
 
                     .on("file-removed", (file) => {
@@ -167,7 +178,7 @@
             },
 
             /**
-             * Abort.
+             * Abort all uploads.
              */
             abort() {
                 this.setState("COMPLETE");
@@ -180,23 +191,14 @@
                 }, 1000);
             },
 
-            /**
-             * Check if the user is connected to the internet.
-             *
-             * @returns {boolean}
-             */
-            checkInternetConnection() {
-                let connected = navigator.onLine;
-
-                if (! connected) {
-                    this.setState("CONNECTION_LOST");
-                }
-
-                return connected;
-            },
-
             get filesRemaining() {
                 return Math.max(0, this.filesInProgress);
+            },
+
+            get hasInternetConnection() {
+                let connected = navigator.onLine;
+
+                return connected;
             },
 
             /**

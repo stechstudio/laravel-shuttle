@@ -2,26 +2,28 @@
 <div class="fixed bottom-0 inset-x-0">
     <div
         x-bind:class="{
-            '{{ config(key: 'shuttle.colors.details-panel.uploading') }}': state === 'UPLOADING',
+            '{{ config(key: 'shuttle.colors.details-panel.uploading') }}': hasInternetConnection && state === 'UPLOADING',
             '{{ config(key: 'shuttle.colors.details-panel.upload-success') }}': state === 'COMPLETE',
             '{{ config(key: 'shuttle.colors.details-panel.upload-error') }}': state === 'COMPLETE_WITH_ERRORS',
             '{{ config(key: 'shuttle.colors.details-panel.upload-error') }}': state === 'FAILED_WITH_ERRORS',
-            '{{ config(key: 'shuttle.colors.details-panel.connection-lost') }}': state === 'CONNECTION_LOST',
+            '{{ config(key: 'shuttle.colors.details-panel.connection-lost') }}': ! hasInternetConnection || state === 'CONNECTION_LOST',
         }"
         x-show="state !== 'IDLE'"
         class="px-6 py-3 text-white font-semibold flex items-center"
         style="display: none;"
     >
         <div class="mr-4">
-            <div x-show="state === 'UPLOADING' && overallProgress === 0">
+            <div x-show="hasInternetConnection && state === 'UPLOADING' && overallProgress === 0">
                 @lang('shuttle::shuttle.preparing')
             </div>
 
-            <div x-show="(state === 'UPLOADING' || state === 'CONNECTION_LOST') && overallProgress > 0">
-                <span x-show="state === 'CONNECTION_LOST'">@lang('shuttle::shuttle.connection_lost')</span>
+            <div>
+                <span x-show="! hasInternetConnection">@lang('shuttle::shuttle.connection_lost')</span>
 
                 <!--suppress JSUnresolvedFunction -->
-                <span x-show="state === 'UPLOADING'" x-text="filesRemaining"></span> @lang('shuttle::shuttle.remaining')
+                <span x-show="hasInternetConnection && state === 'UPLOADING'" x-text="filesRemaining">
+                    @lang('shuttle::shuttle.remaining')
+                </span>
             </div>
 
             <div x-show="state === 'COMPLETE'">
@@ -37,18 +39,17 @@
             </div>
         </div>
 
-        <div class="flex-grow">
+        <div x-show="hasInternetConnection" class="flex-grow">
             <div x-show="state === 'CONNECTION_LOST'" x-bind:style="'width: ' + overallProgress + '%'" class="h-1 bg-white"></div>
         </div>
 
-        <div class="mx-4 w-12 text-right">
+        <div x-show="hasInternetConnection" class="mx-4 w-12 text-right">
             <span x-text="overallProgress + '%'" x-show="overallProgress > 0"></span>
         </div>
 
-        <div class="text-lg opacity-75 hover:opacity-100 cursor-pointer">
+        <div x-show="hasInternetConnection" class="text-lg opacity-75 hover:opacity-100 cursor-pointer">
             <!--suppress JSUnresolvedFunction -->
             <svg
-                @click="abort();"
                 x-show="state === 'FAILED_WITH_ERRORS'"
                 viewBox="0 0 24 24"
                 fill="none"

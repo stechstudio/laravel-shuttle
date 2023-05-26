@@ -23,12 +23,19 @@
 
             <div class="flex items-center">
                 <div x-text="file.progress"></div>
-                {{ trans(key: 'shuttle::shuttle.percentage_symbol') }}
+
+                @lang('shuttle::shuttle.percentage_symbol')
 
                 <div class="w-8 text-right">
-                    <x-shuttle::remove-icon x-show="file.status === 'uploading'" @click="uppy.removeFile(file.id)" />
+                    <x-shuttle::remove-icon
+                        x-show="file.status === 'uploading'"
+                        @click="uppy.removeFile(file.id)"
+                    />
 
-                    <x-shuttle::retry-icon x-show="file.status === 'error'" @click="uppy.retryUpload(file.id).then()" />
+                    <x-shuttle::retry-icon
+                        x-show="file.status === 'error'"
+                        @click="uppy.retryUpload(file.id).then()"
+                    />
                 </div>
             </div>
         </div>
