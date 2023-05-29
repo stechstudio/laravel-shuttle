@@ -95,7 +95,7 @@
                 this.uppy
                     .on("file-added", (file) => {
                         try {
-                            this.setState("UPLOADING");
+                            this.setState("PREPARING");
 
                             this.incrementFilesInProgressCounter();
 
@@ -112,6 +112,8 @@
                     })
 
                     .on("upload-progress", (file, progress) => {
+                        this.setState("UPLOADING");
+
                         this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
                     })
 

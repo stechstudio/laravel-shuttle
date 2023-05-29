@@ -1,7 +1,7 @@
 <div
     x-show="
         hasInternetConnection &&
-        state === 'UPLOADING' &&
+        state === 'PREPARING' &&
         overallProgress === 0
     "
 >
