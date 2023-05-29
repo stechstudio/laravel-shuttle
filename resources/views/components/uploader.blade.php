@@ -68,11 +68,7 @@
                     return;
                 }
 
-                try {
-                    this.addUppyEvents();
-                } catch (error) {
-                    this.abort();
-                }
+                this.addUppyEvents();
             },
 
             /**
@@ -133,16 +129,15 @@
                     })
 
                     .on("upload-error", (file) => {
-                        try {
-                            this.uppy.retryUpload(file.id).then()
-                        } catch (error) {
-                            this.abort();
-                        }
+                        this.uppy.retryUpload(file.id).then();
                     })
 
                     .on("file-removed", (file) => {
                         delete this.files[file.id];
 
+                        // let's check if that was the last remaining
+                        // file, if it was, let's complete the
+                        // process by  calling abort()
                         if (this.filesRemaining === 0) {
                             this.abort();
                         }
@@ -193,14 +188,11 @@
              * Abort all uploads.
              */
             abort() {
-                this.setState("SUCCESS");
+                this.setState("IDLE");
+
                 this.setShowDetails(false);
 
                 this.uppy.reset();
-
-                setTimeout(() => {
-                    this.setState("IDLE");
-                }, 1000);
             },
 
             get filesRemaining() {
@@ -224,13 +216,6 @@
                     autoProceed: true,
                     allowMultipleUploads: true,
                     debug: this.debug,
-                    onBeforeUpload: (files) => {
-                        if (this.state !== 'SUCCESS') {
-                            this.abort();
-
-                            return;
-                        }
-                    },
                     onBeforeFileAdded: (file) => {
                         file.meta = Object.assign(file.meta, config.context);
                         file.meta.size = file.data.size;
