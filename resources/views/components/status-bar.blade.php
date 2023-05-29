@@ -2,6 +2,7 @@
     <h1 x-text="filesRemaining"></h1>
     <h1 x-text="state"></h1>
     <h1 x-text="hasInternetConnection"></h1>
+    
     <div
         x-bind:class="{
             '{{ config('shuttle.colors.details-panel.uploading') }}': hasInternetConnection && state === 'PREPARING',
@@ -29,7 +30,10 @@
         <x-shuttle::progress-bar />
     </div>
 
-    <div x-cloak x-show="state !== 'IDLE'">
+    <div
+        x-cloak
+        x-show="state !== 'IDLE'"
+    >
         <x-shuttle::uploads />
     </div>
 </div>

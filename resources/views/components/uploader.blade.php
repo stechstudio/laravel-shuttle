@@ -95,8 +95,6 @@
                 this.uppy
                     .on("file-added", (file) => {
                         try {
-                            this.setState("PREPARING");
-
                             this.incrementFilesInProgressCounter();
 
                             this.files[file.id] = {
@@ -107,44 +105,68 @@
                                 status: "uploading",
                             };
                         } catch (error) {
-                            //
+                            console.log('file-added error');
                         }
                     })
 
                     .on("upload-progress", (file, progress) => {
-                        this.setState("UPLOADING");
+                        try {
+                            this.setState("UPLOADING");
 
-                        this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
+                            this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
+                        } catch (error) {
+                            console.log('upload-progress error');
+                        }
                     })
 
                     .on("progress", (progress) => {
-                        this.setOverallProgress(progress);
+                        try {
+                            this.setOverallProgress(progress);
+                        } catch (error) {
+                            console.log('progress error');
+                        }
                     })
 
                     .on("upload-success", (file) => {
-                        this.files[file.id].status = "complete";
+                        try {
+                            this.files[file.id].status = "complete";
 
-                        this.incrementFilesUploadedCounter();
-                        this.decrementFilesInProgressCounter();
+                            this.incrementFilesUploadedCounter();
+                            this.decrementFilesInProgressCounter();
 
-                    @this.render();
+                        @this.render();
+                        } catch (error) {
+                            console.log('upload-success error');
+                        }
                     })
 
                     .on("upload-error", (file) => {
-                        this.uppy.retryUpload(file.id).then();
+                        try {
+                            this.uppy.retryUpload(file.id).then();
+                        } catch (error) {
+                            console.log('upload-error error');
+                        }
                     })
 
                     .on("file-removed", (file) => {
-                        delete this.files[file.id];
+                        try {
+                            delete this.files[file.id];
+                        } catch (error) {
+                            console.log('file-removed error');
+                        }
                     })
 
                     .on("complete", (result) => {
-                        if (this.filesRemaining === 0) {
-                            this.setState('SUCCESS');
+                        try {
+                            if (this.filesRemaining === 0) {
+                                this.setState('SUCCESS');
 
-                            setTimeout(() => {
-                                this.abort();
-                            }, 1000)
+                                setTimeout(() => {
+                                    this.abort();
+                                }, 1000)
+                            }
+                        } catch (error) {
+                            console.log('complete error');
                         }
                     });
             },
