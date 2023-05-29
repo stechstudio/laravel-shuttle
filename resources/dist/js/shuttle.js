@@ -6999,6 +6999,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+alert('foo');
 window.Uppy = (_uppy_core__WEBPACK_IMPORTED_MODULE_0___default());
 window.UppyDropTarget = (_uppy_drop_target__WEBPACK_IMPORTED_MODULE_1___default());
 window.AwsS3Multipart = (_uppy_aws_s3_multipart__WEBPACK_IMPORTED_MODULE_2___default());
