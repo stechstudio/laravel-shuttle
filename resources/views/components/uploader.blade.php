@@ -71,7 +71,7 @@
                 try {
                     this.addUppyEvents();
                 } catch (error) {
-                    alert('Something went wrong');
+                    this.abort();
                 }
             },
 
@@ -98,17 +98,21 @@
             addUppyEvents() {
                 this.uppy
                     .on("file-added", (file) => {
-                        this.setState("UPLOADING");
+                        try {
+                            this.setState("UPLOADING");
 
-                        this.incrementFilesInProgressCounter();
+                            this.incrementFilesInProgressCounter();
 
-                        this.files[file.id] = {
-                            id: file.id,
-                            name: file.name,
-                            size: file.size,
-                            progress: 0,
-                            status: "uploading",
-                        };
+                            this.files[file.id] = {
+                                id: file.id,
+                                name: file.name,
+                                size: file.size,
+                                progress: 0,
+                                status: "uploading",
+                            };
+                        } catch (error) {
+                            this.abort();
+                        }
                     })
 
                     .on("upload-progress", (file, progress) => {
@@ -129,8 +133,11 @@
                     })
 
                     .on("upload-error", (file) => {
-                        // handle the errors...
-                        this.uppy.retryUpload(file.id).then()
+                        try {
+                            this.uppy.retryUpload(file.id).then()
+                        } catch (error) {
+                            this.abort();
+                        }
                     })
 
                     .on("file-removed", (file) => {
@@ -165,17 +172,21 @@
              * @param event
              */
             loadFiles(event) {
-                Array.from(event.target.files).forEach((file) => {
-                    this.uppy.addFile({
-                        source: "file input",
-                        name: file.name,
-                        type: file.type,
-                        data: file,
-                        meta: {},
+                try {
+                    Array.from(event.target.files).forEach((file) => {
+                        this.uppy.addFile({
+                            source: "file input",
+                            name: file.name,
+                            type: file.type,
+                            data: file,
+                            meta: {},
+                        });
                     });
-                });
 
-                event.target.value = null;
+                    event.target.value = null;
+                } catch (error) {
+                    this.abort();
+                }
             },
 
             /**
@@ -213,6 +224,13 @@
                     autoProceed: true,
                     allowMultipleUploads: true,
                     debug: this.debug,
+                    onBeforeUpload: (files) => {
+                        if (this.state !== 'SUCCESS') {
+                            this.abort();
+
+                            return;
+                        }
+                    },
                     onBeforeFileAdded: (file) => {
                         file.meta = Object.assign(file.meta, config.context);
                         file.meta.size = file.data.size;
