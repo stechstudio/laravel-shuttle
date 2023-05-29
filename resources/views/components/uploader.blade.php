@@ -107,7 +107,7 @@
                                 status: "uploading",
                             };
                         } catch (error) {
-                            this.abort();
+                            //
                         }
                     })
 
@@ -177,7 +177,7 @@
 
                     event.target.value = null;
                 } catch (error) {
-                    this.abort();
+                    //
                 }
             },
 
