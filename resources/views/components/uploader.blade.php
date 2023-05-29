@@ -135,6 +135,10 @@
 
                     .on("file-removed", (file) => {
                         delete this.files[file.id];
+
+                        if (this.filesRemaining === 0) {
+                            this.abort();
+                        }
                     })
 
                     .on("complete", (result) => {
