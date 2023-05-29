@@ -11,6 +11,6 @@ trait HasUploads
 {
     public function uploads(): MorphMany
     {
-        return $this->morphMany(related: Upload::class, name: 'owner');
+        return $this->morphMany(Upload::class, 'owner');
     }
 }

@@ -134,18 +134,15 @@
 
                     .on("file-removed", (file) => {
                         delete this.files[file.id];
-
-                        // let's check if that was the last remaining
-                        // file, if it was, let's complete the
-                        // process by  calling abort()
-                        if (this.filesRemaining === 0) {
-                            this.abort();
-                        }
                     })
 
                     .on("complete", (result) => {
-                        if (this.filesInProgress === 0) {
-                            this.abort();
+                        if (this.filesRemaining === 0) {
+                            this.setState('SUCCESS');
+
+                            setTimeout(() => {
+                                this.abort();
+                            }, 1000)
                         }
                     });
             },
@@ -189,7 +186,6 @@
              */
             abort() {
                 this.setState("IDLE");
-
                 this.setShowDetails(false);
 
                 this.uppy.reset();
@@ -244,26 +240,10 @@
             },
 
             /**
-             * Set the number of files that are uploaded.
-             *
-             * @param filesUploaded
-             */
-            setFilesUploaded(filesUploaded) {
-                this.filesUploaded = filesUploaded;
-            },
-
-            /**
              * Increment the number of files uploaded by 1.
              */
             incrementFilesUploadedCounter() {
                 this.filesUploaded++;
-            },
-
-            /**
-             * Decrement the number of files uploaded by 1.
-             */
-            decrementFilesUploadedCounter() {
-                this.filesUploaded--;
             },
 
             /**
@@ -287,13 +267,6 @@
              */
             decrementFilesInProgressCounter() {
                 this.filesInProgress--;
-            },
-
-            /**
-             * Set the number of files in progress.
-             */
-            setFilesInProgress(filesInProgress) {
-                this.filesInProgress = filesInProgress;
             },
         }));
     });

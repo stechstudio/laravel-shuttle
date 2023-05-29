@@ -1,12 +1,11 @@
 <div class="fixed bottom-0 inset-x-0">
-    <span x-text="state" class="bg-yellow-400 text-4xl"></span>
-
+    <h1 x-text="filesRemaining"></h1>
     <div
         x-bind:class="{
-            '{{ config(key: 'shuttle.colors.details-panel.uploading') }}': hasInternetConnection && state === 'UPLOADING',
-            '{{ config(key: 'shuttle.colors.details-panel.success') }}': state === 'SUCCESS',
-            '{{ config(key: 'shuttle.colors.details-panel.error') }}': state === 'ERROR',
-            '{{ config(key: 'shuttle.colors.details-panel.connection-lost') }}': ! hasInternetConnection,
+            '{{ config('shuttle.colors.details-panel.uploading') }}': hasInternetConnection && state === 'UPLOADING',
+            '{{ config('shuttle.colors.details-panel.success') }}': state === 'SUCCESS' || filesRemaining === 0,
+            '{{ config('shuttle.colors.details-panel.error') }}': state === 'ERROR',
+            '{{ config('shuttle.colors.details-panel.connection-lost') }}': ! hasInternetConnection,
         }"
         x-show="state !== 'IDLE'"
         class="px-6 py-3 text-white font-semibold flex items-center"

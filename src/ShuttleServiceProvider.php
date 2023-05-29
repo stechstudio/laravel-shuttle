@@ -24,6 +24,6 @@ class ShuttleServiceProvider extends PackageServiceProvider
     {
         $this->app->singleton(ShuttleManager::class);
 
-        $this->loadTranslationsFrom(path: __DIR__ . '/lang', namespace: 'shuttle');
+        $this->loadTranslationsFrom(__DIR__ . '/resources/lang', 'shuttle');
     }
 }

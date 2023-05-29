@@ -1,4 +1,5 @@
-<div x-show="
+<div
+    x-show="
         hasInternetConnection &&
         state === 'UPLOADING' &&
         overallProgress === 0
