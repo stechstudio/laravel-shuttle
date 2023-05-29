@@ -1,5 +1,3 @@
-<script src="../../js/shuttle.js"></script>
-
 @props([
     'trigger' => false,
     'dropTarget' => 'body',
