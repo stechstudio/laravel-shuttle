@@ -143,6 +143,11 @@
 
                             this.incrementFilesUploadedCounter();
                             this.decrementFilesInProgressCounter();
+
+                            if (this.filesRemaining === 0) {
+                                this.uppy.reset();
+                            }
+                            
                         @this.render();
                         } catch (error) {
                             console.log('upload-success error');
@@ -161,7 +166,7 @@
 
                     .on("file-removed", (file) => {
                         try {
-                            //
+                            this.abort();
                         } catch (error) {
                             console.log('file-removed error');
                             this.abort();
