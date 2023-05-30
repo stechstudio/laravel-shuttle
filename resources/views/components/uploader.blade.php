@@ -32,7 +32,7 @@
         Alpine.data("Shuttle", () => ({
             newConfig: '{{ $config }}',
 
-            debug: false,
+            debug: true,
 
             uppy: null,
 
@@ -95,8 +95,6 @@
                 this.uppy
                     .on("file-added", (file) => {
                         try {
-                            this.incrementFilesInProgressCounter();
-
                             this.files[file.id] = {
                                 id: file.id,
                                 name: file.name,
@@ -106,6 +104,16 @@
                             };
                         } catch (error) {
                             console.log('file-added error');
+                            this.abort();
+                        }
+                    })
+
+                    .on('upload', (data) => {
+                        try {
+                            this.incrementFilesInProgressCounter();
+                        } catch (error) {
+                            console.log('upload');
+                            this.abort();
                         }
                     })
 
@@ -116,6 +124,7 @@
                             this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
                         } catch (error) {
                             console.log('upload-progress error');
+                            this.abort();
                         }
                     })
 
@@ -124,19 +133,20 @@
                             this.setOverallProgress(progress);
                         } catch (error) {
                             console.log('progress error');
+                            this.abort();
                         }
                     })
 
                     .on("upload-success", (file) => {
                         try {
-                            this.files[file.id].status = "complete";
+                            this.uppy.removeFile(file.id);
 
                             this.incrementFilesUploadedCounter();
                             this.decrementFilesInProgressCounter();
-
                         @this.render();
                         } catch (error) {
                             console.log('upload-success error');
+                            this.abort();
                         }
                     })
 
@@ -145,14 +155,16 @@
                             this.uppy.retryUpload(file.id).then();
                         } catch (error) {
                             console.log('upload-error error');
+                            this.abort();
                         }
                     })
 
                     .on("file-removed", (file) => {
                         try {
-                            delete this.files[file.id];
+                            //
                         } catch (error) {
                             console.log('file-removed error');
+                            this.abort();
                         }
                     })
 
@@ -167,19 +179,9 @@
                             }
                         } catch (error) {
                             console.log('complete error');
+                            this.abort();
                         }
                     });
-            },
-
-            /**
-             * Unload the file.
-             *
-             * @param e
-             */
-            unload(e) {
-                e.preventDefault();
-
-                e.returnValue = '{{ trans(key: 'shuttle::shuttle.are_you_sure') }}';
             },
 
             /**
@@ -202,6 +204,19 @@
                     event.target.value = null;
                 } catch (error) {
                     //
+                }
+            },
+
+            /**
+             * Unload the file.
+             *
+             * @param e
+             */
+            unload(e) {
+                if (this.state === "UPLOADING") {
+                    e.preventDefault();
+
+                    e.returnValue = '{{ trans(key: 'shuttle::shuttle.are_you_sure') }}';
                 }
             },
 
@@ -237,8 +252,12 @@
                     allowMultipleUploads: true,
                     debug: this.debug,
                     onBeforeFileAdded: (file) => {
-                        file.meta = Object.assign(file.meta, config.context);
-                        file.meta.size = file.data.size;
+                        try {
+                            file.meta = Object.assign(file.meta, config.context);
+                            file.meta.size = file.data.size;
+                        } catch (error) {
+                            console.log('onBeforeFileAdded')
+                        }
                     },
                 });
 
