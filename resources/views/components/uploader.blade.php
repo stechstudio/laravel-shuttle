@@ -32,7 +32,7 @@
         Alpine.data("Shuttle", () => ({
                 newConfig: '{{ $config }}',
 
-                debug: true,
+                debug: true, // @todo: change to false
 
                 uppy: null,
 
@@ -122,6 +122,10 @@
                             delete this.files[file.id];
 
                             this.recalculateState();
+
+                            setTimeout(() => {
+                                this.uppy.removeFile(file.id);
+                            }, 500);
                         })
 
                         .on("upload-error", (file) => {
@@ -130,6 +134,8 @@
 
                         .on("complete", (result) => {
                             this.setState('IDLE');
+
+                            this.uppy.reset();
 
                             this.success = true;
                             console.log('changed success to ' + this.success)

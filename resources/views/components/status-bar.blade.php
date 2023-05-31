@@ -8,7 +8,7 @@
     <div
             x-bind:class="{
             '{{ config('shuttle.colors.details-panel.uploading') }}': hasInternetConnection && state === 'UPLOADING',
-            '{{ config('shuttle.colors.details-panel.success') }}': success && files.length === 0,
+            '{{ config('shuttle.colors.details-panel.success') }}': success && Object.keys(files).length === 0,
             '{{ config('shuttle.colors.details-panel.error') }}': state === 'ERROR',
             '{{ config('shuttle.colors.details-panel.connection-lost') }}': ! hasInternetConnection,
         }"
