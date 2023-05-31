@@ -17,6 +17,7 @@
 <div
         x-data="Shuttle"
         x-on:select-files.window="document.querySelector('.uppy-trigger').click(); if ('activeElement' in document) document.activeElement.blur();"
+        id="uploader"
 >
     <div wire:ignore class="absolute inset-x-0 bottom-0 z-50">
         <!--suppress JSUnresolvedFunction -->
