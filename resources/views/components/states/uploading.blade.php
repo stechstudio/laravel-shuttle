@@ -1,12 +1,13 @@
 <div
-    x-show="
+        x-show="
         hasInternetConnection &&
         state === 'UPLOADING' &&
         overallProgress > 0
     "
-    class="flex w-full items-full"
+        class="flex w-full items-full"
 >
-    <span x-text="filesRemaining" class="mr-1"></span>
+    <!-- @todo: filter incomplete files -->
+    <span x-text="Object.keys(files).length" class="mr-1"></span>
 
     @lang('shuttle::shuttle.remaining')
 </div>

@@ -7,7 +7,7 @@
 
 <div class="fixed h-screen drop-target absolute inset-0 z-50 bg-gray-500 bg-opacity-75 items-center justify-center">
     <div class="text-2xl xl:text-4xl text-white font-bold flex flex-col items-center">
-        <x-shuttle::drop-icon viewBox="0 0 20 20" fill="currentColor" class="w-32 h-32 opacity-50 mb-3" />
+        <x-shuttle::drop-icon viewBox="0 0 20 20" fill="currentColor" class="w-32 h-32 opacity-50 mb-3"/>
 
         <div>@lang('shuttle::shuttle.drop_files')</div>
     </div>
@@ -15,14 +15,14 @@
 
 <!--suppress JSUnresolvedVariable -->
 <div
-    x-data="Shuttle"
-    x-on:select-files.window="document.querySelector('.uppy-trigger').click(); if ('activeElement' in document) document.activeElement.blur();"
+        x-data="Shuttle"
+        x-on:select-files.window="document.querySelector('.uppy-trigger').click(); if ('activeElement' in document) document.activeElement.blur();"
 >
     <div wire:ignore class="absolute inset-x-0 bottom-0 z-50">
         <!--suppress JSUnresolvedFunction -->
         <input x-on:change="loadFiles($event)" type="file" class="hidden uppy-trigger" name="files[]" multiple>
 
-        <x-shuttle::status-bar />
+        <x-shuttle::status-bar/>
     </div>
 </div>
 
@@ -30,294 +30,221 @@
 <script>
     document.addEventListener("alpine:init", () => {
         Alpine.data("Shuttle", () => ({
-            newConfig: '{{ $config }}',
+                newConfig: '{{ $config }}',
 
-            debug: true,
+                debug: true,
 
-            uppy: null,
+                uppy: null,
 
-            state: "IDLE",
+                state: "IDLE",
 
-            showDetails: false,
+                showDetails: false,
 
-            overallProgress: 0,
+                overallProgress: 0,
 
-            files: {},
+                files: {},
 
-            filesUploaded: 0,
+                filesUploaded: 0,
 
-            filesInProgress: 0,
+                filesInProgress: 0,
 
-            config: {
-                baseUrl: '{{ Shuttle::baseUrl() }}',
+                success: false,
 
-                context: @entangle('uploadContext'),
+                config: {
+                    baseUrl: '{{ Shuttle::baseUrl() }}',
 
-                dropTarget: '{{ $dropTarget }}',
-            },
+                    context: @entangle('uploadContext'),
 
-            init() {
-                window.addEventListener("beforeunload", this.unload);
+                    dropTarget: '{{ $dropTarget }}',
+                },
 
-                this.createUppyInstance(this.config);
-                this.loadUppyPlugins();
+                init() {
+                    window.addEventListener("beforeunload", this.unload);
 
-                if (! this.hasInternetConnection) {
-                    this.setState('CONNECTION_LOST');
+                    this.createUppyInstance(this.config);
+                    this.loadUppyPlugins();
 
-                    return;
-                }
+                    if (!this.hasInternetConnection) {
+                        this.setState('CONNECTION_LOST');
 
-                this.addUppyEvents();
-            },
+                        return;
+                    }
 
-            /**
-             * Load the Uppy plugins.
-             */
-            loadUppyPlugins() {
-                this.uppy
-                    .use(UppyDropTarget, {
-                        target: document.querySelector(this.config.dropTarget),
-                    })
-                    .use(AwsS3Multipart, {
-                        limit: 300,
-                        companionUrl: this.config.baseUrl,
-                        companionHeaders: {
-                            "X-CSRF-Token": "xxx",
-                        },
-                    });
-            },
+                    this.addUppyEvents();
+                },
 
-            /**
-             * Add the Uppy events.
-             */
-            addUppyEvents() {
-                this.uppy
-                    .on("file-added", (file) => {
-                        try {
+                /**
+                 * Load the Uppy plugins.
+                 */
+                loadUppyPlugins() {
+                    this.uppy
+                        .use(UppyDropTarget, {
+                            target: document.querySelector(this.config.dropTarget),
+                        })
+                        .use(AwsS3Multipart, {
+                            limit: 300,
+                            companionUrl: this.config.baseUrl,
+                            companionHeaders: {
+                                "X-CSRF-Token": "xxx",
+                            },
+                        });
+                },
+
+                /**
+                 * Add the Uppy events.
+                 */
+                addUppyEvents() {
+                    this.uppy
+                        .on("file-added", (file) => {
+                            this.setState("UPLOADING");
+
                             this.files[file.id] = {
                                 id: file.id,
                                 name: file.name,
                                 size: file.size,
                                 progress: 0,
-                                status: "uploading",
                             };
-                        } catch (error) {
-                            console.log('file-added error');
-                            this.abort();
-                        }
-                    })
+                        })
 
-                    .on('upload', (data) => {
-                        try {
-                            this.incrementFilesInProgressCounter();
-                        } catch (error) {
-                            console.log('upload');
-                            this.abort();
-                        }
-                    })
+                        .on('upload', (data) => {
+                            //
+                        })
 
-                    .on("upload-progress", (file, progress) => {
-                        try {
-                            this.setState("UPLOADING");
+                        .on("upload-progress", (file, progress) => {
+                            //
+                        })
 
-                            this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
-                        } catch (error) {
-                            console.log('upload-progress error');
-                            this.abort();
-                        }
-                    })
+                        .on("progress", (progress) => {
+                            //
+                        })
 
-                    .on("progress", (progress) => {
-                        try {
-                            this.setOverallProgress(progress);
-                        } catch (error) {
-                            console.log('progress error');
-                            this.abort();
-                        }
-                    })
+                        .on("upload-success", (file) => {
+                            delete this.files[file.id];
 
-                    .on("upload-success", (file) => {
-                        try {
-                            this.uppy.removeFile(file.id);
+                            this.recalculateState();
+                        })
 
-                            this.incrementFilesUploadedCounter();
-                            this.decrementFilesInProgressCounter();
-
-                            if (this.filesRemaining === 0) {
-                                this.uppy.reset();
-                            }
-                            
-                        @this.render();
-                        } catch (error) {
-                            console.log('upload-success error');
-                            this.abort();
-                        }
-                    })
-
-                    .on("upload-error", (file) => {
-                        try {
+                        .on("upload-error", (file) => {
                             this.uppy.retryUpload(file.id).then();
-                        } catch (error) {
-                            console.log('upload-error error');
-                            this.abort();
-                        }
-                    })
+                        })
 
-                    .on("file-removed", (file) => {
-                        try {
-                            this.abort();
-                        } catch (error) {
-                            console.log('file-removed error');
-                            this.abort();
-                        }
-                    })
+                        .on("complete", (result) => {
+                            this.setState('IDLE');
 
-                    .on("complete", (result) => {
-                        try {
-                            if (this.filesRemaining === 0) {
-                                this.setState('SUCCESS');
+                            this.success = true;
+                            console.log('changed success to ' + this.success)
 
-                                setTimeout(() => {
-                                    this.abort();
-                                }, 1000)
-                            }
-                        } catch (error) {
-                            console.log('complete error');
-                            this.abort();
-                        }
-                    });
-            },
-
-            /**
-             * Prepare loading the files for upload.
-             *
-             * @param event
-             */
-            loadFiles(event) {
-                try {
-                    Array.from(event.target.files).forEach((file) => {
-                        this.uppy.addFile({
-                            source: "file input",
-                            name: file.name,
-                            type: file.type,
-                            data: file,
-                            meta: {},
+                            setTimeout(() => {
+                                this.success = false;
+                                console.log('timeout, changed success to ' + this.success)
+                            }, 1000)
                         });
+                },
+
+                /**
+                 * Prepare loading the files for upload.
+                 *
+                 * @param event
+                 */
+                loadFiles(event) {
+                    try {
+                        Array.from(event.target.files).forEach((file) => {
+                            this.uppy.addFile({
+                                source: "file input",
+                                name: file.name,
+                                type: file.type,
+                                data: file,
+                                meta: {},
+                            });
+                        });
+
+                        event.target.value = null;
+                    } catch (error) {
+                        //
+                    }
+                }
+                ,
+
+                /**
+                 * Unload the file.
+                 *
+                 * @param e
+                 */
+                unload(e) {
+                    if (this.state === "UPLOADING") {
+                        e.preventDefault();
+
+                        e.returnValue = '{{ trans(key: 'shuttle::shuttle.are_you_sure') }}';
+                    }
+                }
+                ,
+
+                /**
+                 * Abort all uploads.
+                 */
+                abort() {
+                    this.setState("IDLE");
+                    this.setShowDetails(false);
+
+                    this.uppy.reset();
+                }
+                ,
+
+                get hasInternetConnection() {
+                    let connected = navigator.onLine;
+
+                    return connected;
+                }
+                ,
+
+                /**
+                 * Create a Uppy instance.
+                 *
+                 * @param config
+                 * @returns {null}
+                 */
+                createUppyInstance(config) {
+                    this.uppy = new Uppy({
+                        autoProceed: true,
+                        allowMultipleUploads: true,
+                        debug: this.debug,
+                        onBeforeFileAdded: (file) => {
+                            try {
+                                file.meta = Object.assign(file.meta, config.context);
+                                file.meta.size = file.data.size;
+                            } catch (error) {
+                                console.log('onBeforeFileAdded')
+                            }
+                        },
                     });
 
-                    event.target.value = null;
-                } catch (error) {
-                    //
-                }
-            },
+                    return this.uppy;
+                },
 
-            /**
-             * Unload the file.
-             *
-             * @param e
-             */
-            unload(e) {
-                if (this.state === "UPLOADING") {
-                    e.preventDefault();
+                /**
+                 * Set state.
+                 *
+                 * @param value
+                 */
+                setState(value) {
+                    this.state = value;
+                },
 
-                    e.returnValue = '{{ trans(key: 'shuttle::shuttle.are_you_sure') }}';
-                }
-            },
+                recalculateState() {
+                    for (const file of this.uppy.getFiles()) {
+                        if (file.error || file.progress.bytesUploaded < file.progress.bytesTotal) {
+                            this.setState('UPLOADING');
 
-            /**
-             * Abort all uploads.
-             */
-            abort() {
-                this.setState("IDLE");
-                this.setShowDetails(false);
-
-                this.uppy.reset();
-            },
-
-            get filesRemaining() {
-                return Math.max(0, this.filesInProgress);
-            },
-
-            get hasInternetConnection() {
-                let connected = navigator.onLine;
-
-                return connected;
-            },
-
-            /**
-             * Create a Uppy instance.
-             *
-             * @param config
-             * @returns {null}
-             */
-            createUppyInstance(config) {
-                this.uppy = new Uppy({
-                    autoProceed: true,
-                    allowMultipleUploads: true,
-                    debug: this.debug,
-                    onBeforeFileAdded: (file) => {
-                        try {
-                            file.meta = Object.assign(file.meta, config.context);
-                            file.meta.size = file.data.size;
-                        } catch (error) {
-                            console.log('onBeforeFileAdded')
+                            return;
                         }
-                    },
-                });
+                    }
 
-                return this.uppy;
-            },
-
-            /**
-             * Set state.
-             *
-             * @param value
-             */
-            setState(value) {
-                this.state = value;
-            },
-
-            /**
-             * Set show details.
-             *
-             * @param value
-             */
-            setShowDetails(value) {
-                this.showDetails = value;
-            },
-
-            /**
-             * Increment the number of files uploaded by 1.
-             */
-            incrementFilesUploadedCounter() {
-                this.filesUploaded++;
-            },
-
-            /**
-             * Set the overall progress.
-             *
-             * @param progress
-             */
-            setOverallProgress(progress) {
-                this.overallProgress = progress;
-            },
-
-            /**
-             * Increment the number of files in progress by 1.
-             */
-            incrementFilesInProgressCounter() {
-                this.filesInProgress++;
-            },
-
-            /**
-             * Decrement the number of files in progress by 1.
-             */
-            decrementFilesInProgressCounter() {
-                this.filesInProgress--;
-            },
-        }));
-    });
+                    this.setState('IDLE')
+                },
+            })
+        );
+    })
+    ;
 </script>
 
 <style>
