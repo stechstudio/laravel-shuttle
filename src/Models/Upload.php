@@ -113,7 +113,6 @@ class Upload extends Model
     public static function abort($key, $uploadId)
     {
         if (is_null($key) || is_null($uploadId)) {
-            dd('wefjknergjnre');
             return true;
         }
 
