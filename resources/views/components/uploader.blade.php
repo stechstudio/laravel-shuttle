@@ -129,7 +129,12 @@
                         })
 
                         .on("upload-error", (file) => {
-                            this.uppy.retryUpload(file.id).then();
+                            console.log(this.uppy.getFiles());
+                        })
+
+                        .on("error", (file) => {
+                            console.log('give em the errors')
+                            console.log(this.uppy.getFiles());
                         })
 
                         .on("complete", (result) => {
