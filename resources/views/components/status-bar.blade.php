@@ -17,13 +17,9 @@
         class="px-6 py-3 text-white font-semibold flex items-center"
     >
         <div class="mr-4">
-            <x-shuttle::states.preparing />
-
             <x-shuttle::states.uploading />
 
             <x-shuttle::states.success />
-
-            <x-shuttle::states.error />
 
             <x-shuttle::states.connection-lost />
         </div>
