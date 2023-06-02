@@ -120,7 +120,6 @@
                         })
 
                         .on("upload-success", (file) => {
-                            console.log('upload success');
                             delete this.files[file.id];
 
                             this.recalculateState();
@@ -131,13 +130,7 @@
                         })
 
                         .on("upload-error", (file) => {
-                            console.log('upload error');
-                            console.log(this.uppy.getFiles());
-                        })
-
-                        .on("error", (file) => {
-                            console.log('give em the errors');
-                            console.log(this.uppy.getFiles());
+                            //
                         })
 
                         .on("complete", (result) => {
@@ -180,8 +173,7 @@
 
                         e.returnValue = '{{ trans(key: 'shuttle::shuttle.are_you_sure') }}';
                     }
-                }
-                ,
+                },
 
                 /**
                  * Abort all uploads.
@@ -191,15 +183,13 @@
                     this.setShowDetails(false);
 
                     this.uppy.reset();
-                }
-                ,
+                },
 
                 get hasInternetConnection() {
                     let connected = navigator.onLine;
 
                     return connected;
-                }
-                ,
+                },
 
                 /**
                  * Create a Uppy instance.
@@ -217,7 +207,7 @@
                                 file.meta = Object.assign(file.meta, config.context);
                                 file.meta.size = file.data.size;
                             } catch (error) {
-                                console.log('onBeforeFileAdded')
+                                //
                             }
                         },
                     });
@@ -242,8 +232,6 @@
                             return;
                         }
                     }
-
-                    this.setState('IDLE')
                 },
 
                 complete() {
@@ -251,24 +239,19 @@
                         return;
                     }
 
-                    console.log('complete');
+                    this.success = true;
+
                     this.setState('IDLE');
 
                     this.uppy.reset();
 
-                    this.success = true;
-                    console.log('changed success to ' + this.success)
-
                     setTimeout(() => {
                         this.success = false;
-
-                        console.log('timeout, changed success to ' + this.success)
                     }, 1000)
                 }
             })
         );
-    })
-    ;
+    });
 </script>
 
 <style>
