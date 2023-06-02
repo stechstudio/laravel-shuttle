@@ -41,15 +41,11 @@
 
                 showDetails: false,
 
-                overallProgress: 0,
-
                 files: {},
 
-                filesUploaded: 0,
-
-                filesInProgress: 0,
-
                 success: false,
+
+                overallProgress: 0,
 
                 config: {
                     baseUrl: '{{ Shuttle::baseUrl() }}',
@@ -60,18 +56,28 @@
                 },
 
                 init() {
-                    window.addEventListener("beforeunload", this.unload);
+                    window.addEventListener('beforeunload', (e) => {
+                        if (! this.success) {
+                            return;
+                        }
+
+                        e.preventDefault();
+                        e.returnValue = 'Are you sure you want to leave? Uploads in progress will be cancelled.';
+                    });
 
                     this.createUppyInstance(this.config);
                     this.loadUppyPlugins();
 
-                    if (! this.hasInternetConnection) {
-                        this.setState('CONNECTION_LOST');
-
-                        return;
-                    }
-
                     this.addUppyEvents();
+                },
+
+                /**
+                 * Set the overall progress.
+                 *
+                 * @param progress
+                 */
+                setOverallProgress(progress) {
+                    this.overallProgress = progress;
                 },
 
                 /**
@@ -116,7 +122,7 @@
                         })
 
                         .on("progress", (progress) => {
-                            //
+                            this.setOverallProgress(progress);
                         })
 
                         .on("upload-success", (file) => {
