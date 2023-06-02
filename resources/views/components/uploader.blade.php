@@ -7,7 +7,7 @@
 
 <div class="fixed h-screen drop-target absolute inset-0 z-50 bg-gray-500 bg-opacity-75 items-center justify-center">
     <div class="text-2xl xl:text-4xl text-white font-bold flex flex-col items-center">
-        <x-shuttle::drop-icon viewBox="0 0 20 20" fill="currentColor" class="w-32 h-32 opacity-50 mb-3"/>
+        <x-shuttle::drop-icon viewBox="0 0 20 20" fill="currentColor" class="w-32 h-32 opacity-50 mb-3" />
 
         <div>@lang('shuttle::shuttle.drop_files')</div>
     </div>
@@ -15,15 +15,15 @@
 
 <!--suppress JSUnresolvedVariable -->
 <div
-        x-data="Shuttle"
-        x-on:select-files.window="document.querySelector('.uppy-trigger').click(); if ('activeElement' in document) document.activeElement.blur();"
-        id="uploader"
+    x-data="Shuttle"
+    x-on:select-files.window="document.querySelector('.uppy-trigger').click(); if ('activeElement' in document) document.activeElement.blur();"
+    id="uploader"
 >
     <div wire:ignore class="absolute inset-x-0 bottom-0 z-50">
         <!--suppress JSUnresolvedFunction -->
         <input x-on:change="loadFiles($event)" type="file" class="hidden uppy-trigger" name="files[]" multiple>
 
-        <x-shuttle::status-bar/>
+        <x-shuttle::status-bar />
     </div>
 </div>
 
@@ -65,7 +65,7 @@
                     this.createUppyInstance(this.config);
                     this.loadUppyPlugins();
 
-                    if (!this.hasInternetConnection) {
+                    if (! this.hasInternetConnection) {
                         this.setState('CONNECTION_LOST');
 
                         return;
@@ -120,6 +120,7 @@
                         })
 
                         .on("upload-success", (file) => {
+                            console.log('upload success');
                             delete this.files[file.id];
 
                             this.recalculateState();
@@ -130,26 +131,17 @@
                         })
 
                         .on("upload-error", (file) => {
+                            console.log('upload error');
                             console.log(this.uppy.getFiles());
                         })
 
                         .on("error", (file) => {
-                            console.log('give em the errors')
+                            console.log('give em the errors');
                             console.log(this.uppy.getFiles());
                         })
 
                         .on("complete", (result) => {
-                            this.setState('IDLE');
-
-                            this.uppy.reset();
-
-                            this.success = true;
-                            console.log('changed success to ' + this.success)
-
-                            setTimeout(() => {
-                                this.success = false;
-                                console.log('timeout, changed success to ' + this.success)
-                            }, 1000)
+                            this.complete();
                         });
                 },
 
@@ -253,6 +245,28 @@
 
                     this.setState('IDLE')
                 },
+
+                complete() {
+                    if (Object.keys(this.files).length > 0) {
+                        this.complete();
+
+                        return;
+                    }
+                    
+                    console.log('complete');
+                    this.setState('IDLE');
+
+                    this.uppy.reset();
+
+                    this.success = true;
+                    console.log('changed success to ' + this.success)
+
+                    setTimeout(() => {
+                        this.success = false;
+
+                        console.log('timeout, changed success to ' + this.success)
+                    }, 1000)
+                }
             })
         );
     })

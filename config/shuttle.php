@@ -32,13 +32,13 @@ return [
      */
     'colors'     => [
         'details-panel' => [
-            'uploading' => env(key: 'DETAILS_PANEL_UPLOADING', default: 'bg-blue-500'),
+            'uploading' => env('DETAILS_PANEL_UPLOADING', 'bg-blue-500'),
 
-            'success' => env(key: 'DETAILS_PANEL_UPLOAD_SUCCESS', default: 'bg-green-500'),
+            'success' => env('DETAILS_PANEL_UPLOAD_SUCCESS', 'bg-green-500'),
 
-            'error' => env(key: 'DETAILS_PANEL_UPLOAD_ERROR', default: 'bg-red-500'),
+            'error' => env('DETAILS_PANEL_UPLOAD_ERROR', 'bg-red-500'),
 
-            'connection-lost' => env(key: 'DETAILS_PANEL_CONNECTION_LOST', default: 'bg-gray-500'),
+            'connection-lost' => env('DETAILS_PANEL_CONNECTION_LOST', 'bg-gray-500'),
         ],
     ],
 
