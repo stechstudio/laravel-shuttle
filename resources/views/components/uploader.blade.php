@@ -248,11 +248,9 @@
 
                 complete() {
                     if (Object.keys(this.files).length > 0) {
-                        this.complete();
-
                         return;
                     }
-                    
+
                     console.log('complete');
                     this.setState('IDLE');
 
