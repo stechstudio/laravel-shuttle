@@ -28,10 +28,13 @@
                 <div class="w-8 text-right">
                     <x-shuttle::remove-icon
                         x-show="file.status === 'uploading'"
-                        @click="removeFile(file);"
+                        @click="removeFile(file)"
                     />
 
-                    <x-shuttle::retry-icon x-show="file.status === 'error'" />
+                    <x-shuttle::retry-icon
+                        x-show="file.status === 'error'"
+                        @click="uppy.retryUpload(file.id)"
+                    />
                 </div>
             </div>
         </div>

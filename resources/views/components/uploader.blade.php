@@ -137,7 +137,9 @@
                         })
 
                         .on("upload-error", (file) => {
-                            //
+                            this.uppy.retryUpload(file.id);
+
+                            this.files[file.id].status = "error";
                         })
 
                         .on("complete", (result) => {
