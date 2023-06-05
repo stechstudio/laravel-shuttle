@@ -234,6 +234,18 @@
                     this.showDetails = value;
                 },
 
+                removeFile(file) {
+                    this.uppy.removeFile(file.id);
+
+                    delete this.files[file.id];
+
+                    this.recalculateState();
+
+                    if (Object.keys(this.files).length === 0) {
+                        this.complete();
+                    }
+                },
+
                 recalculateState() {
                     for (const file of this.uppy.getFiles()) {
                         if (file.error || file.progress.bytesUploaded < file.progress.bytesTotal) {
