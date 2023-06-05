@@ -1,12 +1,4 @@
-<div class="fixed bottom-0 inset-x-0">
-    <div class="p-4 bg-white text-black">
-        <h1 x-text="Object.keys(files).length"></h1>
-        <h1 x-text="state"></h1>
-        <h1 x-text="hasInternetConnection"></h1>
-        <h1 x-text="Object.keys(files).length"></h1>
-        <h1 x-text="success"></h1>
-    </div>
-
+<div x-cloak class="fixed bottom-0 inset-x-0">
     <div
         x-bind:class="{
             '{{ config('shuttle.colors.details-panel.uploading') }}': hasInternetConnection && state === 'UPLOADING',
@@ -16,21 +8,48 @@
         }"
         class="px-6 py-3 text-white font-semibold flex items-center"
     >
-        <div class="mr-4">
-            <x-shuttle::states.uploading />
+        <div class="flex w-full items-center">
+            <div class="mr-4">
+                <x-shuttle::states.uploading />
 
-            <x-shuttle::states.success />
+                <x-shuttle::states.success />
 
-            <x-shuttle::states.connection-lost />
+                <x-shuttle::states.connection-lost />
+            </div>
+
+            <x-shuttle::progress-bar />
+
+            <div class="mx-4 w-12 text-right">
+                <span x-text="overallProgress + '%'" x-show="overallProgress > 0"></span>
+            </div>
+
+            <div x-show="state === 'UPLOADING'" class="text-lg opacity-75 hover:opacity-100 cursor-pointer">
+                <!--suppress JSUnresolvedFunction -->
+                <svg
+                    @click="setShowDetails(! showDetails);"
+                    x-show="showDetails"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    class="w-6 h-6"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11l7-7 7 7M5 19l7-7 7 7"></path>
+                </svg>
+
+                <!--suppress JSUnresolvedFunction -->
+                <svg
+                    @click="setShowDetails(! showDetails);"
+                    x-show="! showDetails"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    class="w-6 h-6"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13l-7 7-7-7m14-8l-7 7-7-7"></path>
+                </svg>
+            </div>
         </div>
-
-        <x-shuttle::progress-bar />
     </div>
 
-    <div
-        x-cloak
-        x-show="state !== 'IDLE'"
-    >
-        <x-shuttle::uploads />
-    </div>
+    <x-shuttle::uploads />
 </div>

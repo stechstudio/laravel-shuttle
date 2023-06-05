@@ -33,7 +33,7 @@
         Alpine.data("Shuttle", () => ({
                 newConfig: '{{ $config }}',
 
-                debug: true, // @todo: change to false
+                debug: false,
 
                 uppy: null,
 
@@ -110,6 +110,7 @@
                                 name: file.name,
                                 size: file.size,
                                 progress: 0,
+                                status: "uploading",
                             };
                         })
 
@@ -118,7 +119,7 @@
                         })
 
                         .on("upload-progress", (file, progress) => {
-                            //
+                            this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
                         })
 
                         .on("progress", (progress) => {
@@ -163,10 +164,9 @@
 
                         event.target.value = null;
                     } catch (error) {
-                        //
+                        uppy.log(error);
                     }
-                }
-                ,
+                },
 
                 /**
                  * Unload the file.
@@ -230,6 +230,10 @@
                     this.state = value;
                 },
 
+                setShowDetails(value) {
+                    this.showDetails = value;
+                },
+
                 recalculateState() {
                     for (const file of this.uppy.getFiles()) {
                         if (file.error || file.progress.bytesUploaded < file.progress.bytesTotal) {
@@ -253,6 +257,8 @@
 
                     setTimeout(() => {
                         this.success = false;
+
+                        this.setShowDetails(false);
                     }, 1000)
                 }
             })
