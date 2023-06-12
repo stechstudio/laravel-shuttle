@@ -7,7 +7,7 @@
 
 <div class="fixed h-screen drop-target absolute inset-0 z-50 bg-gray-500 bg-opacity-75 items-center justify-center">
     <div class="text-2xl xl:text-4xl text-white font-bold flex flex-col items-center">
-        <x-shuttle::drop-icon viewBox="0 0 20 20" fill="currentColor" class="w-32 h-32 opacity-50 mb-3" />
+        <x-shuttle::drop-icon viewBox="0 0 20 20" fill="currentColor" class="w-32 h-32 opacity-50 mb-3"/>
 
         <div>@lang('shuttle::shuttle.drop_files')</div>
     </div>
@@ -15,15 +15,15 @@
 
 <!--suppress JSUnresolvedVariable -->
 <div
-    x-data="Shuttle"
-    x-on:select-files.window="document.querySelector('.uppy-trigger').click(); if ('activeElement' in document) document.activeElement.blur();"
-    id="uploader"
+        x-data="Shuttle"
+        x-on:select-files.window="document.querySelector('.uppy-trigger').click(); if ('activeElement' in document) document.activeElement.blur();"
+        id="uploader"
 >
     <div wire:ignore class="absolute inset-x-0 bottom-0 z-50">
         <!--suppress JSUnresolvedFunction -->
         <input x-on:change="loadFiles($event)" type="file" class="hidden uppy-trigger" name="files[]" multiple>
 
-        <x-shuttle::status-bar />
+        <x-shuttle::status-bar/>
     </div>
 </div>
 
@@ -57,7 +57,7 @@
 
                 init() {
                     window.addEventListener('beforeunload', (e) => {
-                        if (! this.success) {
+                        if (!this.success) {
                             return;
                         }
 
@@ -103,6 +103,8 @@
                 addUppyEvents() {
                     this.uppy
                         .on("file-added", (file) => {
+                            Livewire.emit("fileAdded", file);
+
                             this.setState("UPLOADING");
 
                             this.files[file.id] = {
@@ -119,14 +121,20 @@
                         })
 
                         .on("upload-progress", (file, progress) => {
+                            Livewire.emit("uploadProgress");
+
                             this.files[file.id].progress = Math.round(progress.bytesUploaded / progress.bytesTotal * 100);
                         })
 
                         .on("progress", (progress) => {
+                            Livewire.emit("progress", progress);
+
                             this.setOverallProgress(progress);
                         })
 
                         .on("upload-success", (file) => {
+                            Livewire.emit("uploadSuccess", file);
+
                             delete this.files[file.id];
 
                             this.recalculateState();
@@ -137,12 +145,16 @@
                         })
 
                         .on("upload-error", (file) => {
+                            Livewire.emit("uploadError", file);
+                            
                             this.uppy.retryUpload(file.id);
 
                             this.files[file.id].status = "error";
                         })
 
                         .on("complete", (result) => {
+                            Livewire.emit("complete", result);
+
                             this.complete();
                         });
                 },
