@@ -204,7 +204,7 @@
                     this.setState("IDLE");
                     this.setShowDetails(false);
 
-                    this.uppy.reset();
+                    this.uppy.cancelAll();
                 },
 
                 get hasInternetConnection() {
@@ -282,7 +282,7 @@
                     this.setState('IDLE');
                     this.setOverallProgress(0);
 
-                    this.uppy.reset();
+                    this.uppy.cancelAll();
 
                     setTimeout(() => {
                         this.success = false;
