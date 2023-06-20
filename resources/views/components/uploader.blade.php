@@ -89,7 +89,7 @@
                             target: document.querySelector(this.config.dropTarget),
                         })
                         .use(AwsS3Multipart, {
-                            limit: 300,
+                            limit: 6,
                             companionUrl: this.config.baseUrl,
                             companionHeaders: {
                                 "X-CSRF-Token": "xxx",
