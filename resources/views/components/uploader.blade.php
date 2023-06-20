@@ -251,6 +251,10 @@
                 },
 
                 removeFile(file) {
+                    if (file.status !== 'uploading') {
+                        return;
+                    }
+                    
                     this.uppy.removeFile(file.id);
 
                     delete this.files[file.id];

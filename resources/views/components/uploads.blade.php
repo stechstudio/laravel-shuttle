@@ -27,7 +27,7 @@
 
                 <div class="w-8 text-right">
                     <x-shuttle::remove-icon
-                        x-show="file.status === 'uploading'"
+                        x-show="file.progress !== 100"
                         @click="removeFile(file)"
                     />
 
