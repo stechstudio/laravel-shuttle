@@ -129,9 +129,7 @@
                         .on("progress", (progress) => {
                             Livewire.emit("progress", progress);
 
-                            if (progress > this.overallProgress) {
-                                this.setOverallProgress(progress);
-                            }
+                            this.setOverallProgress(progress);
                         })
 
                         .on("upload-success", (file) => {
@@ -140,10 +138,6 @@
                             delete this.files[file.id];
 
                             this.recalculateState();
-
-                            setTimeout(() => {
-                                this.uppy.removeFile(file.id);
-                            }, 500);
                         })
 
                         .on("upload-error", (file) => {
@@ -254,7 +248,7 @@
                     if (file.status !== 'uploading') {
                         return;
                     }
-                    
+
                     this.uppy.removeFile(file.id);
 
                     delete this.files[file.id];
